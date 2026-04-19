@@ -1,8 +1,19 @@
-# Welcome to your Expo app 👋
+# English Game 🎮
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Um jogo mobile gamificado para aprendizagem de inglês! Explore uma cidade dinâmica, complete missões educacionais em diferentes locais e domine o alfabeto inglês através de gameplay interativo.
 
-## Get started
+## 🎯 Sobre o Projeto
+
+**English Game** é um aplicativo React Native educacional que transforma o aprendizado de inglês em uma aventura gamificada. O jogador navega por uma cidade virtual onde cada bairro/local oferece diferentes missões para completar. O jogo usa um sistema de navegação baseado em mapa onde explorar diferentes áreas da cidade leva a novas oportunidades de aprendizado.
+
+### Características
+- 🗺️ Exploração de cidade com mapa 2D
+- 🎓 Missões educacionais em múltiplos locais
+- 🎮 Gamificação com progressão de nível
+- 📱 Suporte multiplataforma (iOS, Android, Web)
+- ⚡ Construído com Expo e React Native
+
+## 🚀 Getting Started
 
 1. Install dependencies
 
@@ -23,28 +34,47 @@ In the output, you'll find options to open the app in a
 - [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
 - [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
 
-## Get a fresh project
+## 📂 Desenvolvimento
 
-When you're ready, run:
+### Scripts Disponíveis
 
 ```bash
-npm run reset-project
+npm start             # Inicia Expo com menu interativo
+npm run android       # Build para Android
+npm run ios           # Build para iOS
+npm run web           # Versão web
+npm run lint          # Verifica código
+npm run reset-project # Reseta para projeto em branco
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+## 🏗️ Arquitetura
 
-## Learn more
+O jogo é estruturado em torno de um **sistema de cidades e missões**:
 
-To learn more about developing your project with Expo, look at the following resources:
+- **Mapa Principal:** Cidade explorada pelo jogador com múltiplas áreas
+- **Áreas/Locais:** Diferentes bairros (Escola, Biblioteca, Parque, etc.) que funcionam como pontos de encontro
+- **Missões:** Cada local oferece desafios educacionais relacionados a inglês
+- **Progressão:** Sistema de níveis e recompensas (XP, moedas)
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+### Stack Técnico
 
-## Join the community
+- React Native 0.81.5 + React 19.1.0
+- Expo 54.0.33 (iOS, Android, Web)
+- React Navigation 7.x
+- TypeScript (strict mode)
 
-Join our community of developers creating universal apps.
+## 🎮 Mechanics Principais
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+1. **Navegação no Mapa:** Jogador se move em uma cidade 2D
+2. **Detecção de Colisão:** Entrar em um local inicia uma missão
+3. **Missões Gamificadas:** Completar desafios educacionais
+4. **Sistema de Recompensas:** Ganhar XP e moedas ao terminar
+
+Veja `AGENTS.md` para detalhes técnicos completos.
+
+## 📚 Aprender Mais
+
+- [Expo documentation](https://docs.expo.dev/)
+- `AGENTS.md` - Guia completo para desenvolvedores IA
+- Inspecione `src/` para estrutura do código
