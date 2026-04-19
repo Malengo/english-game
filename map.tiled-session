@@ -1,0 +1,200 @@
+{
+    "activeFile": "assets/lpc-victorian-preview-see-readme/lpc-victorian-preview/victorian-preview.tmx",
+    "expandedProjectPaths": [
+        "assets",
+        "assets/lpc-victorian-preview-see-readme",
+        "."
+    ],
+    "fileStates": {
+        "C:/Users/josem/AppData/Local/Temp/17a31371-8f9d-4bd1-9fac-e83e726c7efd_lpc-victorian-preview-see-readme.zip.efd/lpc-victorian-preview/bricks.tsx": {
+            "dynamicWrapping": true,
+            "scaleInDock": 1
+        },
+        "C:/Users/josem/AppData/Local/Temp/17a31371-8f9d-4bd1-9fac-e83e726c7efd_lpc-victorian-preview-see-readme.zip.efd/lpc-victorian-preview/roofs.tsx": {
+            "scaleInDock": 1
+        },
+        "C:/Users/josem/AppData/Local/Temp/17a31371-8f9d-4bd1-9fac-e83e726c7efd_lpc-victorian-preview-see-readme.zip.efd/lpc-victorian-preview/terrain-map-v8.tsx": {
+            "dynamicWrapping": true,
+            "scaleInDock": 1
+        },
+        "C:/Users/josem/AppData/Local/Temp/17a31371-8f9d-4bd1-9fac-e83e726c7efd_lpc-victorian-preview-see-readme.zip.efd/lpc-victorian-preview/victorian-preview.tmx": {
+            "scale": 0.141015625,
+            "selectedLayer": 6,
+            "viewCenter": {
+                "x": 2049.4182825484763,
+                "y": 1248.08864265928
+            }
+        },
+        "C:/Users/josem/AppData/Local/Temp/17a31371-8f9d-4bd1-9fac-e83e726c7efd_lpc-victorian-preview-see-readme.zip.efd/lpc-victorian-preview/victorian-preview.tmx#container": {
+            "scaleInDock": 1
+        },
+        "C:/Users/josem/AppData/Local/Temp/17a31371-8f9d-4bd1-9fac-e83e726c7efd_lpc-victorian-preview-see-readme.zip.efd/lpc-victorian-preview/victorian-preview.tmx#food": {
+            "dynamicWrapping": false,
+            "scaleInDock": 1
+        },
+        "C:/Users/josem/AppData/Local/Temp/17a31371-8f9d-4bd1-9fac-e83e726c7efd_lpc-victorian-preview-see-readme.zip.efd/lpc-victorian-preview/victorian-preview.tmx#trees": {
+            "scaleInDock": 1
+        },
+        "C:/Users/josem/AppData/Local/Temp/17a31371-8f9d-4bd1-9fac-e83e726c7efd_lpc-victorian-preview-see-readme.zip.efd/lpc-victorian-preview/victorian-preview.tmx#vacc": {
+            "scaleInDock": 1
+        },
+        "C:/Users/josem/AppData/Local/Temp/17a31371-8f9d-4bd1-9fac-e83e726c7efd_lpc-victorian-preview-see-readme.zip.efd/lpc-victorian-preview/victorian-preview.tmx#vgard": {
+            "scaleInDock": 1
+        },
+        "C:/Users/josem/AppData/Local/Temp/17a31371-8f9d-4bd1-9fac-e83e726c7efd_lpc-victorian-preview-see-readme.zip.efd/lpc-victorian-preview/victorian-preview.tmx#vhouse": {
+            "scaleInDock": 1
+        },
+        "C:/Users/josem/AppData/Local/Temp/17a31371-8f9d-4bd1-9fac-e83e726c7efd_lpc-victorian-preview-see-readme.zip.efd/lpc-victorian-preview/victorian-preview.tmx#vmkt": {
+            "scaleInDock": 1
+        },
+        "C:/Users/josem/AppData/Local/Temp/17a31371-8f9d-4bd1-9fac-e83e726c7efd_lpc-victorian-preview-see-readme.zip.efd/lpc-victorian-preview/victorian-preview.tmx#vstreets": {
+            "scaleInDock": 1
+        },
+        "C:/Users/josem/AppData/Local/Temp/17a31371-8f9d-4bd1-9fac-e83e726c7efd_lpc-victorian-preview-see-readme.zip.efd/lpc-victorian-preview/victorian-preview.tmx#vten": {
+            "scaleInDock": 1
+        },
+        "C:/Users/josem/AppData/Local/Temp/17a31371-8f9d-4bd1-9fac-e83e726c7efd_lpc-victorian-preview-see-readme.zip.efd/lpc-victorian-preview/victorian-preview.tmx#vwindoors": {
+            "scaleInDock": 1
+        },
+        "C:/Users/josem/AppData/Local/Temp/17a31371-8f9d-4bd1-9fac-e83e726c7efd_lpc-victorian-preview-see-readme.zip.efd/lpc-victorian-preview/victorian-preview.tmx#windoors": {
+            "scaleInDock": 1
+        },
+        "C:/Users/josem/Downloads/lpc-victorian-preview-see-readme/lpc-victorian-preview/bricks.tsx": {
+            "scaleInDock": 1
+        },
+        "C:/Users/josem/Downloads/lpc-victorian-preview-see-readme/lpc-victorian-preview/roofs.tsx": {
+            "scaleInDock": 1
+        },
+        "C:/Users/josem/Downloads/lpc-victorian-preview-see-readme/lpc-victorian-preview/terrain-map-v8.tsx": {
+            "scaleInDock": 1
+        },
+        "C:/Users/josem/Downloads/lpc-victorian-preview-see-readme/lpc-victorian-preview/victorian-preview.tmx": {
+            "scale": 1.5,
+            "selectedLayer": 0,
+            "viewCenter": {
+                "x": 2057.333333333333,
+                "y": 2672
+            }
+        },
+        "C:/Users/josem/Downloads/lpc-victorian-preview-see-readme/lpc-victorian-preview/victorian-preview.tmx#container": {
+            "scaleInDock": 1
+        },
+        "C:/Users/josem/Downloads/lpc-victorian-preview-see-readme/lpc-victorian-preview/victorian-preview.tmx#food": {
+            "scaleInDock": 1
+        },
+        "C:/Users/josem/Downloads/lpc-victorian-preview-see-readme/lpc-victorian-preview/victorian-preview.tmx#trees": {
+            "scaleInDock": 1
+        },
+        "C:/Users/josem/Downloads/lpc-victorian-preview-see-readme/lpc-victorian-preview/victorian-preview.tmx#vacc": {
+            "scaleInDock": 1
+        },
+        "C:/Users/josem/Downloads/lpc-victorian-preview-see-readme/lpc-victorian-preview/victorian-preview.tmx#vgard": {
+            "scaleInDock": 1
+        },
+        "C:/Users/josem/Downloads/lpc-victorian-preview-see-readme/lpc-victorian-preview/victorian-preview.tmx#vhouse": {
+            "scaleInDock": 1
+        },
+        "C:/Users/josem/Downloads/lpc-victorian-preview-see-readme/lpc-victorian-preview/victorian-preview.tmx#vmkt": {
+            "scaleInDock": 1
+        },
+        "C:/Users/josem/Downloads/lpc-victorian-preview-see-readme/lpc-victorian-preview/victorian-preview.tmx#vstreets": {
+            "scaleInDock": 1
+        },
+        "C:/Users/josem/Downloads/lpc-victorian-preview-see-readme/lpc-victorian-preview/victorian-preview.tmx#vten": {
+            "scaleInDock": 1
+        },
+        "C:/Users/josem/Downloads/lpc-victorian-preview-see-readme/lpc-victorian-preview/victorian-preview.tmx#vwindoors": {
+            "scaleInDock": 1
+        },
+        "C:/Users/josem/Downloads/lpc-victorian-preview-see-readme/lpc-victorian-preview/victorian-preview.tmx#windoors": {
+            "scaleInDock": 1
+        },
+        "assets/lpc-victorian-preview-see-readme/lpc-victorian-preview/bricks.tsx": {
+            "scaleInDock": 1
+        },
+        "assets/lpc-victorian-preview-see-readme/lpc-victorian-preview/roofs.tsx": {
+            "scaleInDock": 1
+        },
+        "assets/lpc-victorian-preview-see-readme/lpc-victorian-preview/terrain-map-v8.tsx": {
+            "scaleInDock": 1
+        },
+        "assets/lpc-victorian-preview-see-readme/lpc-victorian-preview/victorian-preview.tmx": {
+            "scale": 0.5,
+            "selectedLayer": 3,
+            "viewCenter": {
+                "x": 2432,
+                "y": 1364
+            }
+        },
+        "assets/lpc-victorian-preview-see-readme/lpc-victorian-preview/victorian-preview.tmx#container": {
+            "scaleInDock": 1
+        },
+        "assets/lpc-victorian-preview-see-readme/lpc-victorian-preview/victorian-preview.tmx#food": {
+            "scaleInDock": 1
+        },
+        "assets/lpc-victorian-preview-see-readme/lpc-victorian-preview/victorian-preview.tmx#trees": {
+            "scaleInDock": 1
+        },
+        "assets/lpc-victorian-preview-see-readme/lpc-victorian-preview/victorian-preview.tmx#vacc": {
+            "scaleInDock": 1
+        },
+        "assets/lpc-victorian-preview-see-readme/lpc-victorian-preview/victorian-preview.tmx#vgard": {
+            "scaleInDock": 1
+        },
+        "assets/lpc-victorian-preview-see-readme/lpc-victorian-preview/victorian-preview.tmx#vhouse": {
+            "scaleInDock": 1
+        },
+        "assets/lpc-victorian-preview-see-readme/lpc-victorian-preview/victorian-preview.tmx#vmkt": {
+            "scaleInDock": 1
+        },
+        "assets/lpc-victorian-preview-see-readme/lpc-victorian-preview/victorian-preview.tmx#vstreets": {
+            "scaleInDock": 1
+        },
+        "assets/lpc-victorian-preview-see-readme/lpc-victorian-preview/victorian-preview.tmx#vten": {
+            "scaleInDock": 1
+        },
+        "assets/lpc-victorian-preview-see-readme/lpc-victorian-preview/victorian-preview.tmx#vwindoors": {
+            "scaleInDock": 1
+        },
+        "assets/lpc-victorian-preview-see-readme/lpc-victorian-preview/victorian-preview.tmx#windoors": {
+            "scaleInDock": 1
+        },
+        "assets/map.tmj": {
+            "scale": 0.5046875,
+            "selectedLayer": 0,
+            "viewCenter": {
+                "x": 122.84829721362223,
+                "y": 245.69659442724463
+            }
+        },
+        "victorian-garden.tsx": {
+            "dynamicWrapping": false,
+            "scaleInDock": 1,
+            "scaleInEditor": 1
+        },
+        "victorian-market.tsx": {
+            "scaleInDock": 1,
+            "scaleInEditor": 1
+        },
+        "victorian-streets.tsx": {
+            "scaleInDock": 1,
+            "scaleInEditor": 1
+        }
+    },
+    "last.exportedFilePath": "C:/Users/josem/Documents/estudos/english-game/assets/lpc-victorian-preview-see-readme/lpc-victorian-preview",
+    "map.lastUsedExportFilter": "All Files (*)",
+    "openFiles": [
+        "C:/Users/josem/Downloads/lpc-victorian-preview-see-readme/lpc-victorian-preview/victorian-preview.tmx",
+        "assets/lpc-victorian-preview-see-readme/lpc-victorian-preview/victorian-preview.tmx"
+    ],
+    "project": "",
+    "recentFiles": [
+        "C:/Users/josem/Downloads/lpc-victorian-preview-see-readme/lpc-victorian-preview/victorian-preview.tmx",
+        "assets/lpc-victorian-preview-see-readme/lpc-victorian-preview/victorian-preview.tmx",
+        "assets/map.tmj",
+        "victorian-garden.tsx",
+        "victorian-streets.tsx",
+        "C:/Users/josem/AppData/Local/Temp/17a31371-8f9d-4bd1-9fac-e83e726c7efd_lpc-victorian-preview-see-readme.zip.efd/lpc-victorian-preview/victorian-preview.tmx",
+        "victorian-market.tsx"
+    ]
+}

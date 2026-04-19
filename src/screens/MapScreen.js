@@ -1,6 +1,7 @@
 // src/screens/MapScreen.js
-import React, { useState, useEffect, useRef } from "react";
-import { View, Image, useWindowDimensions } from "react-native";
+import React, { useState, useEffect, useMemo, useRef } from "react";
+import { View, Image, useWindowDimensions, Text, Modal, TouchableOpacity } from "react-native";
+import { locations } from "../data/locationConfig";
 import Player from "../components/Player";
 import FloatingJoystick from "../components/FloatingJoystick";
 
@@ -37,6 +38,12 @@ const INITIAL_POSITION = {
     y: SPAWN_TILE_Y * victorianMapData.tileheight,
 };
 
+const schoolLayer = victorianMapData.layers.find(
+    (layer) => layer.type === "objectgroup" && layer.name?.toLowerCase() === "school"
+);
+const schoolObject = schoolLayer?.objects?.[0] ?? null;
+const SCHOOL_TRIGGER_SIZE = 96;
+
 function clamp(value, min, max) {
     return Math.max(min, Math.min(value, max));
 }
@@ -64,14 +71,26 @@ function collidesWithAny(position) {
     return collisionRects.some((rect) => rectsOverlap(playerRect, rect));
 }
 
-export default function MapScreen() {
+export default function MapScreen({ navigation }) {
     const { width: viewportWidth, height: viewportHeight } = useWindowDimensions();
     const [position, setPosition] = useState(INITIAL_POSITION);
     const [lastDirection, setLastDirection] = useState("down");
     const [isMoving, setIsMoving] = useState(false);
     const [moveVector, setMoveVector] = useState({ x: 0, y: 0 });
     const [camera, setCamera] = useState({ x: 0, y: 0 });
+    const [showSchoolModal, setShowSchoolModal] = useState(false);
     const hasInitializedCamera = useRef(false);
+    const wasInsideSchool = useRef(false);
+
+    const handleContinueToSchoolTutorial = () => {
+        setShowSchoolModal(false);
+        if (navigation?.navigate) {
+            navigation.navigate("SchoolMission", {
+                autoStart: true,
+                locationId: "school",
+            });
+        }
+    };
 
     // Aplica movimento continuo baseado no vetor do joystick
     useEffect(() => {
@@ -126,6 +145,55 @@ export default function MapScreen() {
     const playerCenterX = position.x + PLAYER_HITBOX / 2;
     const playerCenterY = position.y + PLAYER_HITBOX / 2;
 
+    // compute school center in world coordinates (prefer Tiled object; fallback to config)
+    const schoolLocation = locations.find((l) => l.id === "school");
+    const schoolCenter = useMemo(
+        () =>
+            schoolLocation
+                ? {
+                      x: schoolLocation.tileX * victorianMapData.tilewidth + (schoolLocation.width || 0) / 2,
+                      y: schoolLocation.tileY * victorianMapData.tileheight + (schoolLocation.height || 0) / 2,
+                  }
+                : null,
+        [schoolLocation]
+    );
+
+    const schoolCenterFromObject = useMemo(
+        () =>
+            schoolObject
+                ? {
+                      x: schoolObject.x,
+                      y: schoolObject.y,
+                  }
+                : null,
+        []
+    );
+
+    const finalSchoolCenter = useMemo(() => schoolCenterFromObject ?? schoolCenter, [schoolCenterFromObject, schoolCenter]);
+
+    const schoolTriggerRect = useMemo(() => {
+        if (schoolObject) {
+            // Object in Tiled is a point; use a square trigger around it
+            return {
+                x: schoolObject.x - SCHOOL_TRIGGER_SIZE / 2,
+                y: schoolObject.y - SCHOOL_TRIGGER_SIZE / 2,
+                width: SCHOOL_TRIGGER_SIZE,
+                height: SCHOOL_TRIGGER_SIZE,
+            };
+        }
+
+        if (schoolLocation) {
+            return {
+                x: schoolLocation.tileX * victorianMapData.tilewidth,
+                y: schoolLocation.tileY * victorianMapData.tileheight,
+                width: schoolLocation.width,
+                height: schoolLocation.height,
+            };
+        }
+
+        return null;
+    }, [schoolLocation]);
+
     const cameraX = clamp(
         playerCenterX - viewportWidth / 2,
         0,
@@ -172,8 +240,72 @@ export default function MapScreen() {
         return () => cancelAnimationFrame(rafId);
     }, [cameraX, cameraY]);
 
+    // Show welcome modal when entering school trigger area
+    useEffect(() => {
+        if (!schoolTriggerRect) return;
+
+        const playerRect = getPlayerCollisionRect(position);
+        const isInside = rectsOverlap(playerRect, schoolTriggerRect);
+
+        if (isInside && !wasInsideSchool.current) {
+            setShowSchoolModal(true);
+        }
+
+        wasInsideSchool.current = isInside;
+    }, [position, schoolTriggerRect]);
+
     return (
         <View style={{ flex: 1, backgroundColor: "#bfc7d1", overflow: "hidden" }}>
+            <Modal
+                visible={showSchoolModal}
+                transparent={true}
+                animationType="fade"
+                onRequestClose={() => setShowSchoolModal(false)}
+            >
+                <View
+                    style={{
+                        flex: 1,
+                        backgroundColor: "rgba(0,0,0,0.5)",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        paddingHorizontal: 24,
+                    }}
+                >
+                    <View
+                        style={{
+                            width: "100%",
+                            maxWidth: 360,
+                            backgroundColor: "white",
+                            borderRadius: 14,
+                            padding: 20,
+                            borderWidth: 2,
+                            borderColor: "#FF7043",
+                        }}
+                    >
+                        <Text style={{ fontSize: 24, textAlign: "center", marginBottom: 10 }}>📚</Text>
+                        <Text style={{ fontSize: 20, fontWeight: "bold", textAlign: "center", marginBottom: 10 }}>
+                            Escola
+                        </Text>
+                        <Text style={{ fontSize: 15, color: "#444", textAlign: "center", lineHeight: 22 }}>
+                            Bem-vindo a Escola! Aqui voce vai aprender o alfabeto e ganhar moedas para desbloquear novas areas.
+                        </Text>
+
+                        <TouchableOpacity
+                            onPress={handleContinueToSchoolTutorial}
+                            style={{
+                                marginTop: 18,
+                                backgroundColor: "#FF7043",
+                                borderRadius: 10,
+                                paddingVertical: 12,
+                                alignItems: "center",
+                            }}
+                        >
+                            <Text style={{ color: "white", fontWeight: "bold", fontSize: 16 }}>Continuar</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            </Modal>
+
             {/* Mundo com camera seguindo o player */}
             <View
                 style={{
@@ -204,7 +336,36 @@ export default function MapScreen() {
                     isMoving={isMoving}
                     useImage={true}
                 />
+
+                {/* debug marker removed */}
             </View>
+
+            {/* Small debug overlay: player coords and distance to school (shows when debugging) */}
+            <View style={{ position: "absolute", left: 8, top: 8, backgroundColor: "rgba(0,0,0,0.5)", padding: 8, borderRadius: 6 }}>
+                <Text style={{ color: "white", fontSize: 12 }}>x: {Math.round(position.x)} y: {Math.round(position.y)}</Text>
+                {finalSchoolCenter && (
+                    <Text style={{ color: "white", fontSize: 12 }}>dist: {Math.round(Math.hypot(finalSchoolCenter.x - playerCenterX, finalSchoolCenter.y - playerCenterY))} px</Text>
+                )}
+            </View>
+
+            {/* Direction arrow HUD pointing to School (hidden when near) */}
+            {finalSchoolCenter && (() => {
+                const dx = finalSchoolCenter.x - playerCenterX;
+                const dy = finalSchoolCenter.y - playerCenterY;
+                const dist = Math.hypot(dx, dy);
+                const angle = Math.atan2(dy, dx);
+                const nearThreshold = schoolTriggerRect ? Math.max(schoolTriggerRect.width, schoolTriggerRect.height) / 2 : 56;
+                const isNear = dist < nearThreshold + 16;
+                if (isNear) return null;
+                return (
+                    <View style={{ position: "absolute", right: 18, bottom: 90, width: 56, height: 56, justifyContent: "center", alignItems: "center" }}>
+                        <Text style={{ fontSize: 36, transform: [{ rotate: `${angle}rad` }], color: "#FF7043" }}>➤</Text>
+                        <View style={{ position: "absolute", top: 42, backgroundColor: "rgba(0,0,0,0.6)", paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8 }}>
+                            <Text style={{ color: "white", fontSize: 12 }}>Escola</Text>
+                        </View>
+                    </View>
+                );
+            })()}
 
             {/* Joystick flutuante */}
             <FloatingJoystick onMove={setMoveVector} />
