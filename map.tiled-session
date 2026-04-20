@@ -1,8 +1,8 @@
 {
     "activeFile": "assets/lpc-victorian-preview-see-readme/lpc-victorian-preview/victorian-preview.tmx",
     "expandedProjectPaths": [
-        "assets",
         "assets/lpc-victorian-preview-see-readme",
+        "assets",
         "."
     ],
     "fileStates": {
@@ -120,10 +120,10 @@
         },
         "assets/lpc-victorian-preview-see-readme/lpc-victorian-preview/victorian-preview.tmx": {
             "scale": 0.5,
-            "selectedLayer": 3,
+            "selectedLayer": 4,
             "viewCenter": {
-                "x": 2432,
-                "y": 1364
+                "x": 1034,
+                "y": 1938
             }
         },
         "assets/lpc-victorian-preview-see-readme/lpc-victorian-preview/victorian-preview.tmx#container": {
@@ -184,13 +184,12 @@
     "last.exportedFilePath": "C:/Users/josem/Documents/estudos/english-game/assets/lpc-victorian-preview-see-readme/lpc-victorian-preview",
     "map.lastUsedExportFilter": "All Files (*)",
     "openFiles": [
-        "C:/Users/josem/Downloads/lpc-victorian-preview-see-readme/lpc-victorian-preview/victorian-preview.tmx",
         "assets/lpc-victorian-preview-see-readme/lpc-victorian-preview/victorian-preview.tmx"
     ],
     "project": "",
     "recentFiles": [
-        "C:/Users/josem/Downloads/lpc-victorian-preview-see-readme/lpc-victorian-preview/victorian-preview.tmx",
         "assets/lpc-victorian-preview-see-readme/lpc-victorian-preview/victorian-preview.tmx",
+        "C:/Users/josem/Downloads/lpc-victorian-preview-see-readme/lpc-victorian-preview/victorian-preview.tmx",
         "assets/map.tmj",
         "victorian-garden.tsx",
         "victorian-streets.tsx",

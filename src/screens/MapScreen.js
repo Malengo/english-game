@@ -76,10 +76,8 @@ export default function MapScreen({ navigation }) {
     const [position, setPosition] = useState(INITIAL_POSITION);
     const [lastDirection, setLastDirection] = useState("down");
     const [isMoving, setIsMoving] = useState(false);
-    const [moveVector, setMoveVector] = useState({ x: 0, y: 0 });
-    const [camera, setCamera] = useState({ x: 0, y: 0 });
+    const moveVectorRef = useRef({ x: 0, y: 0 });
     const [showSchoolModal, setShowSchoolModal] = useState(false);
-    const hasInitializedCamera = useRef(false);
     const wasInsideSchool = useRef(false);
 
     const handleContinueToSchoolTutorial = () => {
@@ -92,9 +90,9 @@ export default function MapScreen({ navigation }) {
         }
     };
 
-    // Aplica movimento continuo baseado no vetor do joystick
-    useEffect(() => {
-        const intensity = Math.hypot(moveVector.x, moveVector.y);
+    const handleJoystickMove = (nextVector) => {
+        moveVectorRef.current = nextVector;
+        const intensity = Math.hypot(nextVector.x, nextVector.y);
 
         if (intensity < 0.1) {
             setIsMoving(false);
@@ -103,14 +101,22 @@ export default function MapScreen({ navigation }) {
 
         setIsMoving(true);
 
-        if (Math.abs(moveVector.x) > Math.abs(moveVector.y)) {
-            setLastDirection(moveVector.x > 0 ? "right" : "left");
+        if (Math.abs(nextVector.x) > Math.abs(nextVector.y)) {
+            setLastDirection(nextVector.x > 0 ? "right" : "left");
         } else {
-            setLastDirection(moveVector.y > 0 ? "down" : "up");
+            setLastDirection(nextVector.y > 0 ? "down" : "up");
         }
+    };
 
+    // Loop unico de movimento para evitar recriar intervalos a cada frame do joystick
+    useEffect(() => {
         const speed = 5;
         const intervalId = setInterval(() => {
+            const moveVector = moveVectorRef.current;
+            const intensity = Math.hypot(moveVector.x, moveVector.y);
+
+            if (intensity < 0.1) return;
+
             setPosition((prev) => {
                 const minX = -PLAYER_COLLISION_OFFSET_X;
                 const maxX =
@@ -139,7 +145,7 @@ export default function MapScreen({ navigation }) {
         }, 50);
 
         return () => clearInterval(intervalId);
-    }, [moveVector]);
+    }, []);
 
 
     const playerCenterX = position.x + PLAYER_HITBOX / 2;
@@ -205,40 +211,6 @@ export default function MapScreen({ navigation }) {
         0,
         Math.max(0, WORLD_HEIGHT - viewportHeight)
     );
-
-    // Camera suave: interpola a camera renderizada ate o alvo
-    useEffect(() => {
-        const LERP_FACTOR = 0.18;
-        const SNAP_EPSILON = 0.5;
-
-        if (!hasInitializedCamera.current) {
-            hasInitializedCamera.current = true;
-            setCamera({ x: cameraX, y: cameraY });
-            return;
-        }
-
-        let rafId;
-
-        const animate = () => {
-            setCamera((prev) => {
-                const nextX = prev.x + (cameraX - prev.x) * LERP_FACTOR;
-                const nextY = prev.y + (cameraY - prev.y) * LERP_FACTOR;
-
-                const doneX = Math.abs(cameraX - nextX) < SNAP_EPSILON;
-                const doneY = Math.abs(cameraY - nextY) < SNAP_EPSILON;
-
-                if (doneX && doneY) {
-                    return { x: cameraX, y: cameraY };
-                }
-
-                rafId = requestAnimationFrame(animate);
-                return { x: nextX, y: nextY };
-            });
-        };
-
-        rafId = requestAnimationFrame(animate);
-        return () => cancelAnimationFrame(rafId);
-    }, [cameraX, cameraY]);
 
     // Show welcome modal when entering school trigger area
     useEffect(() => {
@@ -312,7 +284,10 @@ export default function MapScreen({ navigation }) {
                     position: "absolute",
                     width: WORLD_WIDTH,
                     height: WORLD_HEIGHT,
-                    transform: [{ translateX: -camera.x }, { translateY: -camera.y }],
+                    transform: [
+                        { translateX: -Math.round(cameraX) },
+                        { translateY: -Math.round(cameraY) },
+                    ],
                 }}
             >
                 <Image
@@ -368,7 +343,7 @@ export default function MapScreen({ navigation }) {
             })()}
 
             {/* Joystick flutuante */}
-            <FloatingJoystick onMove={setMoveVector} />
+            <FloatingJoystick onMove={handleJoystickMove} />
         </View>
     );
 }
