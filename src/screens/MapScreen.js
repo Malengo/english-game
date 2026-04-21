@@ -4,6 +4,7 @@ import { View, Image, useWindowDimensions, Text, Modal, TouchableOpacity } from 
 import { locations } from "../data/locationConfig";
 import Player from "../components/Player";
 import FloatingJoystick from "../components/FloatingJoystick";
+import PlayerDialog from "../components/PlayerDialog";
 
 const victorianMapData = require("../../assets/lpc-victorian-preview-see-readme/lpc-victorian-preview/victorian-preview.json");
 const MAP_BACKGROUND = require("../../assets/lpc-victorian-preview-see-readme/lpc-victorian-preview/victorian-preview.png");
@@ -78,7 +79,35 @@ export default function MapScreen({ navigation }) {
     const [isMoving, setIsMoving] = useState(false);
     const moveVectorRef = useRef({ x: 0, y: 0 });
     const [showSchoolModal, setShowSchoolModal] = useState(false);
+    const [playerDialog, setPlayerDialog] = useState({ visible: false, message: "" });
+    const dialogTimeoutRef = useRef(null);
     const wasInsideSchool = useRef(false);
+
+    const hidePlayerDialog = () => {
+        if (dialogTimeoutRef.current) {
+            clearTimeout(dialogTimeoutRef.current);
+            dialogTimeoutRef.current = null;
+        }
+        setPlayerDialog((prev) => ({ ...prev, visible: false }));
+    };
+
+    const showPlayerDialog = (message, options = {}) => {
+        const { autoHideMs = 0 } = options;
+
+        if (dialogTimeoutRef.current) {
+            clearTimeout(dialogTimeoutRef.current);
+            dialogTimeoutRef.current = null;
+        }
+
+        setPlayerDialog({ visible: true, message });
+
+        if (autoHideMs > 0) {
+            dialogTimeoutRef.current = setTimeout(() => {
+                setPlayerDialog((prev) => ({ ...prev, visible: false }));
+                dialogTimeoutRef.current = null;
+            }, autoHideMs);
+        }
+    };
 
     const handleContinueToSchoolTutorial = () => {
         setShowSchoolModal(false);
@@ -107,6 +136,19 @@ export default function MapScreen({ navigation }) {
             setLastDirection(nextVector.y > 0 ? "down" : "up");
         }
     };
+
+    // Mensagem inicial acima do player ao abrir o mapa
+    useEffect(() => {
+        const firstMessage = "Bem-vindo! Explore a cidade para encontrar locais e iniciar missoes. Siga em direção da escola";
+
+        showPlayerDialog(firstMessage, { autoHideMs: 10000 });
+
+        return () => {
+            if (dialogTimeoutRef.current) {
+                clearTimeout(dialogTimeoutRef.current);
+            }
+        };
+    }, []);
 
     // Loop unico de movimento para evitar recriar intervalos a cada frame do joystick
     useEffect(() => {
@@ -150,6 +192,8 @@ export default function MapScreen({ navigation }) {
 
     const playerCenterX = position.x + PLAYER_HITBOX / 2;
     const playerCenterY = position.y + PLAYER_HITBOX / 2;
+    const playerHeadX = playerCenterX;
+    const playerHeadY = position.y + PLAYER_COLLISION_OFFSET_Y;
 
     // compute school center in world coordinates (prefer Tiled object; fallback to config)
     const schoolLocation = locations.find((l) => l.id === "school");
@@ -310,6 +354,14 @@ export default function MapScreen({ navigation }) {
                     character="🧑‍🦱"
                     isMoving={isMoving}
                     useImage={true}
+                />
+
+                <PlayerDialog
+                    visible={playerDialog.visible}
+                    message={playerDialog.message}
+                    anchorX={playerHeadX}
+                    anchorY={playerHeadY}
+                    onClose={hidePlayerDialog}
                 />
 
                 {/* debug marker removed */}
