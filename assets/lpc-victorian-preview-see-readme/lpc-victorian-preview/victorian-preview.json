@@ -70,6 +70,30 @@
         }, 
         {
          "draworder":"topdown",
+         "id":15,
+         "name":"house",
+         "objects":[
+                {
+                 "height":0,
+                 "id":19,
+                 "name":"",
+                 "opacity":1,
+                 "point":true,
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":0,
+                 "x":3198,
+                 "y":1268
+                }],
+         "opacity":1,
+         "type":"objectgroup",
+         "visible":true,
+         "x":0,
+         "y":0
+        }, 
+        {
+         "draworder":"topdown",
          "id":14,
          "name":"collision",
          "objects":[
@@ -339,8 +363,8 @@
          "x":0,
          "y":0
         }],
- "nextlayerid":15,
- "nextobjectid":19,
+ "nextlayerid":16,
+ "nextobjectid":20,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tiledversion":"1.12.1",

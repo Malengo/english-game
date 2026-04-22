@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, TouchableOpacity } from "react-native";
+import { View, Text, TouchableOpacity, useWindowDimensions } from "react-native";
 
 const DEFAULT_WIDTH = 220;
 const DIALOG_OFFSET_Y = 120;
@@ -14,6 +14,9 @@ export default function PlayerDialog({
     onPressCta,
     width = DEFAULT_WIDTH,
 }) {
+    const { width: viewportWidth } = useWindowDimensions();
+    const safeMargin = 8;
+    const left = Math.max(safeMargin, Math.min(anchorX - width / 2, viewportWidth - width - safeMargin));
     if (!visible || !message) return null;
 
     return (
@@ -21,7 +24,7 @@ export default function PlayerDialog({
             pointerEvents="box-none"
             style={{
                 position: "absolute",
-                left: anchorX - width / 2,
+                left,
                 top: anchorY - DIALOG_OFFSET_Y,
                 width,
                 alignItems: "center",
@@ -50,6 +53,8 @@ export default function PlayerDialog({
                 {ctaLabel && onPressCta && (
                     <TouchableOpacity
                         onPress={onPressCta}
+                        accessibilityRole="button"
+                        accessibilityLabel={ctaLabel}
                         style={{
                             marginTop: 10,
                             backgroundColor: "#FF7043",
@@ -68,6 +73,8 @@ export default function PlayerDialog({
                 {!!onClose && (
                     <TouchableOpacity
                         onPress={onClose}
+                        accessibilityRole="button"
+                        accessibilityLabel="Fechar dialogo"
                         style={{ alignSelf: "center", marginTop: 8 }}
                     >
                         <Text style={{ color: "#777", fontSize: 12 }}>Fechar</Text>

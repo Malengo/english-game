@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { PanResponder, View, Dimensions } from "react-native";
+import { PanResponder, View, useWindowDimensions } from "react-native";
 
 function clampToRadius(dx, dy, maxRadius) {
     const distance = Math.hypot(dx, dy);
@@ -14,6 +14,7 @@ function clampToRadius(dx, dy, maxRadius) {
 
 export default function FloatingJoystick({ onMove }) {
     const [thumbOffset, setThumbOffset] = useState({ x: 0, y: 0 });
+    const { height: windowHeight } = useWindowDimensions();
 
     const baseSize = 110;
     const thumbSize = 44;
@@ -23,11 +24,10 @@ export default function FloatingJoystick({ onMove }) {
     // Base position constants (must match MapScreen placement)
     const BASE_LEFT = 24;
     const BASE_BOTTOM = 28;
-    const window = Dimensions.get("window");
     // Calculate absolute center of the joystick base in screen coordinates
     const baseCenter = {
         x: BASE_LEFT + baseSize / 2,
-        y: window.height - BASE_BOTTOM - baseSize / 2,
+        y: windowHeight - BASE_BOTTOM - baseSize / 2,
     };
 
     const panResponder = useMemo(
@@ -51,19 +51,19 @@ export default function FloatingJoystick({ onMove }) {
                     setThumbOffset(clamped);
 
                     if (Math.hypot(normalizedX, normalizedY) < deadZone) {
-                        onMove({ x: 0, y: 0 });
+                        onMove?.({ x: 0, y: 0 });
                         return;
                     }
 
-                    onMove({ x: normalizedX, y: normalizedY });
+                    onMove?.({ x: normalizedX, y: normalizedY });
                 },
                 onPanResponderRelease: () => {
                     setThumbOffset({ x: 0, y: 0 });
-                    onMove({ x: 0, y: 0 });
+                    onMove?.({ x: 0, y: 0 });
                 },
                 onPanResponderTerminate: () => {
                     setThumbOffset({ x: 0, y: 0 });
-                    onMove({ x: 0, y: 0 });
+                    onMove?.({ x: 0, y: 0 });
                 },
             }),
         [maxRadius, deadZone, onMove, baseCenter.x, baseCenter.y]
