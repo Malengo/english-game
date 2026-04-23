@@ -46,6 +46,45 @@ npm run ios           # Build para iOS
 npm run web           # Versão web
 npm run lint          # Verifica código
 npm run reset-project # Reseta para projeto em branco
+npm test              # Executa testes uma vez
+npm run test:watch    # Modo watch para TDD
+npm run test:coverage # Gera relatório de cobertura
+npm run tdd           # Watch + cobertura (fluxo TDD)
+```
+
+## ✅ Testes e TDD
+
+### Política do projeto
+
+- Toda funcionalidade nova deve começar com especificação e teste automatizado.
+- Meta inicial de cobertura global: **60%** (branches, functions, lines, statements).
+- Esta fase de estabilização foca nas camadas de dados/utilitários e telas de missão.
+
+### Fluxo padrão (TDD)
+
+1. **Especificar** comportamento esperado (Given/When/Then em PR/issue).
+2. **Escrever teste que falha** representando o comportamento.
+3. **Implementar o mínimo** para o teste passar.
+4. **Refatorar** mantendo todos os testes verdes.
+5. **Validar cobertura** com `npm run test:coverage`.
+
+### Template rápido de especificação
+
+```text
+Funcionalidade:
+Contexto:
+Given:
+When:
+Then:
+Critérios de aceite:
+```
+
+### Comandos de uso rápido
+
+```bash
+npm test
+npm run test:watch
+npm run test:coverage
 ```
 
 ## 🏗️ Arquitetura
