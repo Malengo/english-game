@@ -2,8 +2,8 @@
     "activeFile": "assets/lpc-victorian-preview-see-readme/lpc-victorian-preview/victorian-preview.tmx",
     "expandedProjectPaths": [
         "assets/lpc-victorian-preview-see-readme",
-        "assets",
-        "."
+        ".",
+        "assets"
     ],
     "fileStates": {
         "C:/Users/josem/AppData/Local/Temp/17a31371-8f9d-4bd1-9fac-e83e726c7efd_lpc-victorian-preview-see-readme.zip.efd/lpc-victorian-preview/bricks.tsx": {
@@ -122,8 +122,8 @@
             "scale": 0.5,
             "selectedLayer": 4,
             "viewCenter": {
-                "x": 1034,
-                "y": 1938
+                "x": 2546,
+                "y": 1364
             }
         },
         "assets/lpc-victorian-preview-see-readme/lpc-victorian-preview/victorian-preview.tmx#container": {
