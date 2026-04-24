@@ -7,6 +7,7 @@ module.exports = {
     "src/data/**/*.js",
     "src/screens/SchoolMissionScreen.js",
     "src/screens/HouseMissionScreen.js",
+    "src/screens/mapScreen.logic.js",
   ],
   coverageThreshold: {
     global: {

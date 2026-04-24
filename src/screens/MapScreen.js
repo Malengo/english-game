@@ -7,6 +7,15 @@ import Player from "../components/Player";
 import FloatingJoystick from "../components/FloatingJoystick";
 import PlayerDialog from "../components/PlayerDialog";
 import { loadProgress } from "../utils/progressStorage";
+import {
+    clamp,
+    rectsOverlap,
+    getPlayerCollisionRect,
+    resolveMovementStep,
+    calculateCurrentStage,
+    selectObjectiveLocation,
+    resolveLocationEntryAction,
+} from "./mapScreen.logic";
 
 const victorianMapData = require("../../assets/lpc-victorian-preview-see-readme/lpc-victorian-preview/victorian-preview.json");
 const MAP_BACKGROUND = require("../../assets/lpc-victorian-preview-see-readme/lpc-victorian-preview/victorian-preview.png");
@@ -27,15 +36,31 @@ const collisionLayers = victorianMapData.layers.filter((layer) => {
     return layer.type === "objectgroup" && layerName.includes("collision");
 });
 
-const collisionRects = collisionLayers
+const collisionShapes = collisionLayers
     .flatMap((layer) => layer.objects ?? [])
-    .filter((obj) => obj.visible !== false && obj.width > 0 && obj.height > 0)
-    .map((obj) => ({
-        x: obj.x,
-        y: obj.y,
-        width: obj.width,
-        height: obj.height,
-    }));
+    .filter((obj) => obj.visible !== false)
+    .map((obj) => {
+        if (Array.isArray(obj.polygon) && obj.polygon.length >= 3) {
+            return {
+                type: "polygon",
+                // Polygon points in Tiled are relative to object origin.
+                points: obj.polygon.map((point) => ({ x: obj.x + point.x, y: obj.y + point.y })),
+            };
+        }
+
+        if (obj.width > 0 && obj.height > 0) {
+            return {
+                type: "rect",
+                x: obj.x,
+                y: obj.y,
+                width: obj.width,
+                height: obj.height,
+            };
+        }
+
+        return null;
+    })
+    .filter(Boolean);
 
 const INITIAL_POSITION = {
     x: SPAWN_TILE_X * victorianMapData.tilewidth,
@@ -44,32 +69,12 @@ const INITIAL_POSITION = {
 
 const SHOW_DEBUG_HUD = typeof __DEV__ !== "undefined" ? __DEV__ : false;
 
-function clamp(value, min, max) {
-    return Math.max(min, Math.min(value, max));
-}
-
-function rectsOverlap(a, b) {
-    return (
-        a.x < b.x + b.width &&
-        a.x + a.width > b.x &&
-        a.y < b.y + b.height &&
-        a.y + a.height > b.y
-    );
-}
-
-function getPlayerCollisionRect(position) {
-    return {
-        x: position.x + PLAYER_COLLISION_OFFSET_X,
-        y: position.y + PLAYER_COLLISION_OFFSET_Y,
-        width: PLAYER_COLLISION_WIDTH,
-        height: PLAYER_COLLISION_HEIGHT,
-    };
-}
-
-function collidesWithAny(position) {
-    const playerRect = getPlayerCollisionRect(position);
-    return collisionRects.some((rect) => rectsOverlap(playerRect, rect));
-}
+const PLAYER_COLLISION_BOX = {
+    width: PLAYER_COLLISION_WIDTH,
+    height: PLAYER_COLLISION_HEIGHT,
+    offsetX: PLAYER_COLLISION_OFFSET_X,
+    offsetY: PLAYER_COLLISION_OFFSET_Y,
+};
 
 function getMapPointForLocation(locationId) {
     const locationLayer = victorianMapData.layers.find(
@@ -150,17 +155,10 @@ export default function MapScreen({ navigation }) {
         [locationTriggers, blockedLocationId]
     );
 
-    const currentStage = useMemo(() => {
-        let maxUnlockedStage = 1;
-
-        for (const location of locations) {
-            if (completedLocationIds.includes(location.id)) {
-                maxUnlockedStage = Math.max(maxUnlockedStage, (location.stageRequired ?? 1) + 1);
-            }
-        }
-
-        return maxUnlockedStage;
-    }, [completedLocationIds]);
+    const currentStage = useMemo(
+        () => calculateCurrentStage(locations, completedLocationIds),
+        [completedLocationIds]
+    );
 
     const refreshProgress = useCallback(async () => {
         const progress = await loadProgress();
@@ -254,29 +252,21 @@ export default function MapScreen({ navigation }) {
             if (intensity < 0.1) return;
 
             setPosition((prev) => {
-                const minX = -PLAYER_COLLISION_OFFSET_X;
-                const maxX =
-                    WORLD_WIDTH - (PLAYER_COLLISION_WIDTH + PLAYER_COLLISION_OFFSET_X);
-                const minY = -PLAYER_COLLISION_OFFSET_Y;
-                const maxY =
-                    WORLD_HEIGHT - (PLAYER_COLLISION_HEIGHT + PLAYER_COLLISION_OFFSET_Y);
+                const bounds = {
+                    minX: -PLAYER_COLLISION_OFFSET_X,
+                    maxX: WORLD_WIDTH - (PLAYER_COLLISION_WIDTH + PLAYER_COLLISION_OFFSET_X),
+                    minY: -PLAYER_COLLISION_OFFSET_Y,
+                    maxY: WORLD_HEIGHT - (PLAYER_COLLISION_HEIGHT + PLAYER_COLLISION_OFFSET_Y),
+                };
 
-                const wantedX = clamp(prev.x + moveVector.x * speed, minX, maxX);
-                const wantedY = clamp(prev.y + moveVector.y * speed, minY, maxY);
-
-                let nextX = wantedX;
-                let nextY = prev.y;
-
-                if (collidesWithAny({ x: nextX, y: nextY })) {
-                    nextX = prev.x;
-                }
-
-                nextY = wantedY;
-                if (collidesWithAny({ x: nextX, y: nextY })) {
-                    nextY = prev.y;
-                }
-
-                return { x: nextX, y: nextY };
+                return resolveMovementStep({
+                    prev,
+                    moveVector,
+                    speed,
+                    bounds,
+                    collisionShapes,
+                    collisionBox: PLAYER_COLLISION_BOX,
+                });
             });
         }, 50);
 
@@ -289,18 +279,10 @@ export default function MapScreen({ navigation }) {
     const playerHeadX = playerCenterX;
     const playerHeadY = position.y + PLAYER_COLLISION_OFFSET_Y;
 
-    const objectiveLocation = useMemo(() => {
-        const targetForStage = locationTriggers.find(
-            (location) => (location.stageRequired ?? 1) === currentStage
-        );
-
-        if (targetForStage) return targetForStage;
-
-        return (
-            locationTriggers.find((location) => (location.stageRequired ?? 1) <= currentStage) ??
-            null
-        );
-    }, [locationTriggers, currentStage]);
+    const objectiveLocation = useMemo(
+        () => selectObjectiveLocation(locationTriggers, currentStage),
+        [locationTriggers, currentStage]
+    );
 
     const cameraX = clamp(
         playerCenterX - viewportWidth / 2,
@@ -318,21 +300,27 @@ export default function MapScreen({ navigation }) {
     useEffect(() => {
         if (!locationTriggers.length) return;
 
-        const playerRect = getPlayerCollisionRect(position);
+        const playerRect = getPlayerCollisionRect(position, PLAYER_COLLISION_BOX);
 
         for (const location of locationTriggers) {
             const isInside = rectsOverlap(playerRect, location.triggerRect);
             const wasInside = Boolean(insideLocationsRef.current[location.id]);
 
-            if (isInside && !wasInside && !activeLocationId && !blockedLocationId) {
-                const requiredStage = location.stageRequired ?? 1;
-                const isUnlocked = currentStage >= requiredStage;
+            const action = resolveLocationEntryAction({
+                isInside,
+                wasInside,
+                activeLocationId,
+                blockedLocationId,
+                currentStage,
+                requiredStage: location.stageRequired ?? 1,
+            });
 
-                if (isUnlocked) {
-                    setActiveLocationId(location.id);
-                } else {
-                    setBlockedLocationId(location.id);
-                }
+            if (action === "activate") {
+                setActiveLocationId(location.id);
+            }
+
+            if (action === "block") {
+                setBlockedLocationId(location.id);
             }
 
             insideLocationsRef.current[location.id] = isInside;

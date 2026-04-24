@@ -13,6 +13,7 @@ export default function Player({
     character = "🧑‍🦱",
     isMoving = false,
     useImage = false,
+    testID = "player-container",
 }) {
     const [frameIndex, setFrameIndex] = useState(1); // Centro (idle) para sprite 3-colunas
 
@@ -70,6 +71,7 @@ export default function Player({
 
         return (
             <View
+                testID={testID}
                 style={{
                     position: "absolute",
                     left: x - (DISPLAY_WIDTH - HITBOX_SIZE) / 2,
@@ -93,8 +95,9 @@ export default function Player({
     }
 
     // Fallback para emoji
-    return (
+        return (
         <View
+            testID={testID}
             style={{
                 position: "absolute",
                 left: x,

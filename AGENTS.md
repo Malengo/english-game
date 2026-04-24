@@ -67,7 +67,7 @@ App.js
             └── Location-specific missions
 ```
 
-- **Player Component** (`src/components/Player.js`): Stateless sprite component with emoji-based character display. Props: `x`, `y`, `direction` ('up'/'down'/'left'/'right'), `character` (emoji string)
+- **Player Component** (`src/components/Player.js`): Stateless sprite component with emoji/image display. Props: `x`, `y`, `direction` ('up'/'down'/'left'/'right'), `character` (emoji string), `isMoving`, `useImage`, `testID` (default: `player-container`)
 - **Data Layer** (`src/data/alphabet.js`): Simple export of alphabet array - single source of truth for current mission content
 
 ## Development Workflows
@@ -268,6 +268,14 @@ english-game/
 - **Naming:** Portuguese screen names ("Mapa", "Escola"), English variable names (position, index)
 - **Imports:** Standard Node CommonJS style, no barrel exports yet
 - **Constants:** Hard-coded values in component bodies (school area, starting position) - extract to constants file if reused
+
+### Testing Conventions (`@testing-library/react-native`)
+
+- Prefer behavior-oriented queries first (`getByText`, accessibility queries) when the element is user-facing.
+- Use `testID` for non-text visual elements (sprite/container/map overlays) where text/accessibility selectors are not stable.
+- Keep `testID` values stable because they are part of the test contract; if you rename one, update tests in the same change.
+- Use consistent `kebab-case` IDs (examples already in project: `player-container`, `player-box`).
+- For reusable components, forward `testID` to the root interactive/visual element so tests can select the same node across render modes (emoji/image), as done in `src/components/Player.js` and `src/components/__tests__/Player.test.js`.
 
 ## Debugging Tips
 
