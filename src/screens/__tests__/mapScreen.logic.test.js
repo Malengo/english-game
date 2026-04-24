@@ -19,13 +19,13 @@ describe("mapScreen.logic", () => {
     expect(clamp(20, 0, 10)).toBe(10);
   });
 
-  it("rectsOverlap detecta sobreposicao sem contar toque de borda", () => {
+  it("rectsOverlap detecta sobreposicao incluindo toque de borda", () => {
     const a = { x: 0, y: 0, width: 10, height: 10 };
     const b = { x: 5, y: 5, width: 10, height: 10 };
     const c = { x: 10, y: 0, width: 5, height: 5 };
 
     expect(rectsOverlap(a, b)).toBe(true);
-    expect(rectsOverlap(a, c)).toBe(false);
+    expect(rectsOverlap(a, c)).toBe(true);
   });
 
   it("calcula retangulo de colisao do player", () => {

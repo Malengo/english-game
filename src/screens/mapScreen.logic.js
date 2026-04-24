@@ -3,7 +3,8 @@ export function clamp(value, min, max) {
 }
 
 export function rectsOverlap(a, b) {
-  return a.x < b.x + b.width && a.x + a.width > b.x && a.y < b.y + b.height && a.y + a.height > b.y;
+  // Conta toque de borda como colisao para reduzir gap visual no bloqueio.
+  return a.x <= b.x + b.width && a.x + a.width >= b.x && a.y <= b.y + b.height && a.y + a.height >= b.y;
 }
 
 function pointInRect(point, rect) {
@@ -42,9 +43,9 @@ function segmentsIntersect(a, b, c, d) {
   if (o1 === 0 && pointOnSegment(a, b, c)) return true;
   if (o2 === 0 && pointOnSegment(a, b, d)) return true;
   if (o3 === 0 && pointOnSegment(c, d, a)) return true;
-  if (o4 === 0 && pointOnSegment(c, d, b)) return true;
+  return !!(o4 === 0 && pointOnSegment(c, d, b));
 
-  return false;
+
 }
 
 function pointInPolygon(point, polygonPoints) {
