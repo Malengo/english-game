@@ -49,30 +49,6 @@ export const locations = [
     autoStartOnEnter: false,
     description: "Licao da casa: objetos e comodos em ingles",
   },
-  {
-    id: "shop",
-    name: "Loja",
-    emoji: "🛍️",
-    tileX: 60,
-    tileY: 35,
-    width: 80,
-    height: 80,
-    screenRoute: "ShopScreen",
-    stageRequired: 6,
-    description: "Compre itens e personalize",
-  },
-  {
-    id: "airport",
-    name: "Aeroporto",
-    emoji: "✈️",
-    tileX: 70,
-    tileY: 60,
-    width: 100,
-    height: 100,
-    screenRoute: "AirportScreen",
-    stageRequired: 7,
-    description: "Viagem para novo mundo",
-  },
 ];
 
 export const getLocationById = (id) => locations.find((loc) => loc.id === id);

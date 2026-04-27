@@ -9,8 +9,6 @@ import PlayerDialog from "../components/PlayerDialog";
 import { loadProgress } from "../utils/progressStorage";
 import {
     clamp,
-    rectsOverlap,
-    getPlayerCollisionRect,
     resolveMovementStep,
     calculateCurrentStage,
     selectObjectiveLocation,
@@ -23,10 +21,12 @@ const MAP_BACKGROUND = require("../../assets/lpc-victorian-preview-see-readme/lp
 const WORLD_WIDTH = victorianMapData.width * victorianMapData.tilewidth;
 const WORLD_HEIGHT = victorianMapData.height * victorianMapData.tileheight;
 const PLAYER_HITBOX = 40;
-const PLAYER_COLLISION_WIDTH = 48;
-const PLAYER_COLLISION_HEIGHT = 64;
-const PLAYER_COLLISION_OFFSET_X = -(PLAYER_COLLISION_WIDTH - PLAYER_HITBOX) / 2;
-const PLAYER_COLLISION_OFFSET_Y = -(PLAYER_COLLISION_HEIGHT - PLAYER_HITBOX);
+const PLAYER_SPRITE_HEIGHT = 64;
+const PLAYER_HEAD_OFFSET_Y = -(PLAYER_SPRITE_HEIGHT - PLAYER_HITBOX);
+const PLAYER_COLLISION_WIDTH = 28;
+const PLAYER_COLLISION_HEIGHT = 16;
+const PLAYER_COLLISION_OFFSET_X = (PLAYER_HITBOX - PLAYER_COLLISION_WIDTH) / 2;
+const PLAYER_COLLISION_OFFSET_Y = PLAYER_HITBOX - PLAYER_COLLISION_HEIGHT;
 const SPAWN_TILE_X = 56;
 const SPAWN_TILE_Y = 53;
 const LOCATION_TRIGGER_SIZE = 96;
@@ -244,7 +244,7 @@ export default function MapScreen({ navigation }) {
 
     // Loop unico de movimento para evitar recriar intervalos a cada frame do joystick
     useEffect(() => {
-        const speed = 5;
+        const speed = 4;
         const intervalId = setInterval(() => {
             const moveVector = moveVectorRef.current;
             const intensity = Math.hypot(moveVector.x, moveVector.y);
@@ -277,7 +277,7 @@ export default function MapScreen({ navigation }) {
     const playerCenterX = position.x + PLAYER_HITBOX / 2;
     const playerCenterY = position.y + PLAYER_HITBOX / 2;
     const playerHeadX = playerCenterX;
-    const playerHeadY = position.y + PLAYER_COLLISION_OFFSET_Y;
+    const playerHeadY = position.y + PLAYER_HEAD_OFFSET_Y;
 
     const objectiveLocation = useMemo(
         () => selectObjectiveLocation(locationTriggers, currentStage),
@@ -300,10 +300,14 @@ export default function MapScreen({ navigation }) {
     useEffect(() => {
         if (!locationTriggers.length) return;
 
-        const playerRect = getPlayerCollisionRect(position, PLAYER_COLLISION_BOX);
+        const playerCenter = { x: playerCenterX, y: playerCenterY };
 
         for (const location of locationTriggers) {
-            const isInside = rectsOverlap(playerRect, location.triggerRect);
+            const isInside =
+                playerCenter.x >= location.triggerRect.x &&
+                playerCenter.x <= location.triggerRect.x + location.triggerRect.width &&
+                playerCenter.y >= location.triggerRect.y &&
+                playerCenter.y <= location.triggerRect.y + location.triggerRect.height;
             const wasInside = Boolean(insideLocationsRef.current[location.id]);
 
             const action = resolveLocationEntryAction({
@@ -325,7 +329,7 @@ export default function MapScreen({ navigation }) {
 
             insideLocationsRef.current[location.id] = isInside;
         }
-    }, [position, locationTriggers, activeLocationId, blockedLocationId, currentStage]);
+    }, [position, locationTriggers, activeLocationId, blockedLocationId, currentStage, playerCenterX, playerCenterY]);
 
     const directionHud = useMemo(() => {
         if (!objectiveLocation) return null;

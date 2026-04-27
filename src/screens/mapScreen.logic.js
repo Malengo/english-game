@@ -3,8 +3,8 @@ export function clamp(value, min, max) {
 }
 
 export function rectsOverlap(a, b) {
-  // Conta toque de borda como colisao para reduzir gap visual no bloqueio.
-  return a.x <= b.x + b.width && a.x + a.width >= b.x && a.y <= b.y + b.height && a.y + a.height >= b.y;
+  // Sobreposicao estrita: apenas intersecao real bloqueia, sem colisao por toque de borda.
+  return a.x < b.x + b.width && a.x + a.width > b.x && a.y < b.y + b.height && a.y + a.height > b.y;
 }
 
 function pointInRect(point, rect) {
