@@ -195,3 +195,109 @@ export function resolveLocationEntryAction({
   return currentStage >= requiredStage ? "activate" : "block";
 }
 
+export function getAabbRect(position, hitbox) {
+  const safeHitbox = hitbox ?? { width: 0, height: 0, offsetX: 0, offsetY: 0 };
+
+  return {
+    x: position.x + (safeHitbox.offsetX ?? 0),
+    y: position.y + (safeHitbox.offsetY ?? 0),
+    width: safeHitbox.width ?? 0,
+    height: safeHitbox.height ?? 0,
+  };
+}
+
+function expandRect(rect, padding = 0) {
+  if (padding <= 0) return rect;
+
+  return {
+    x: rect.x - padding,
+    y: rect.y - padding,
+    width: rect.width + padding * 2,
+    height: rect.height + padding * 2,
+  };
+}
+
+export function areAabbsOverlapping(firstRect, secondRect, padding = 0) {
+  return rectsOverlap(expandRect(firstRect, padding), expandRect(secondRect, padding));
+}
+
+export function isPlayerNearNpc({
+  playerPosition,
+  playerHitbox,
+  npcPosition,
+  npcHitbox,
+  padding = 0,
+}) {
+  const playerRect = getAabbRect(playerPosition, playerHitbox);
+  const npcRect = getAabbRect(npcPosition, npcHitbox);
+
+  return areAabbsOverlapping(playerRect, npcRect, padding);
+}
+
+export function resolveNpcPatrolStep({
+  position,
+  patrolPath,
+  targetIndex,
+  speed,
+  arriveDistance = 1,
+}) {
+  if (!Array.isArray(patrolPath) || patrolPath.length === 0) {
+    return {
+      position,
+      targetIndex: 0,
+      direction: "down",
+      isMoving: false,
+    };
+  }
+
+  const safeSpeed = Math.max(0, speed ?? 0);
+  let nextTargetIndex = Number.isInteger(targetIndex) ? targetIndex : 0;
+  if (nextTargetIndex < 0 || nextTargetIndex >= patrolPath.length) {
+    nextTargetIndex = 0;
+  }
+
+  let target = patrolPath[nextTargetIndex] ?? patrolPath[0];
+  let dx = target.x - position.x;
+  let dy = target.y - position.y;
+  let distance = Math.hypot(dx, dy);
+
+  if (distance <= arriveDistance && patrolPath.length > 1) {
+    nextTargetIndex = (nextTargetIndex + 1) % patrolPath.length;
+    target = patrolPath[nextTargetIndex];
+    dx = target.x - position.x;
+    dy = target.y - position.y;
+    distance = Math.hypot(dx, dy);
+  }
+
+  if (distance === 0 || safeSpeed === 0) {
+    return {
+      position,
+      targetIndex: nextTargetIndex,
+      direction: "down",
+      isMoving: false,
+    };
+  }
+
+  const step = Math.min(safeSpeed, distance);
+  const nextPosition = {
+    x: position.x + (dx / distance) * step,
+    y: position.y + (dy / distance) * step,
+  };
+
+  const direction =
+    Math.abs(dx) > Math.abs(dy)
+      ? dx > 0
+        ? "right"
+        : "left"
+      : dy > 0
+      ? "down"
+      : "up";
+
+  return {
+    position: nextPosition,
+    targetIndex: nextTargetIndex,
+    direction,
+    isMoving: true,
+  };
+}
+

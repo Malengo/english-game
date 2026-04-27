@@ -14,8 +14,18 @@ jest.mock("../../utils/progressStorage", () => ({
   loadProgress: (...args) => mockLoadProgress(...args),
 }));
 
+jest.mock("../../data/npcConfig", () => ({
+  npcConfigs: [],
+}));
+
 jest.mock("../../components/Player", () => {
   return function MockPlayer() {
+    return null;
+  };
+});
+
+jest.mock("../../components/Npc", () => {
+  return function MockNpc() {
     return null;
   };
 });

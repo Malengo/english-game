@@ -3,7 +3,9 @@ import React, { useState, useEffect, useMemo, useRef, useCallback } from "react"
 import { View, Image, useWindowDimensions, Text, Modal, TouchableOpacity } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 import { locations } from "../data/locationConfig";
+import { npcConfigs } from "../data/npcConfig";
 import Player from "../components/Player";
+import Npc from "../components/Npc";
 import FloatingJoystick from "../components/FloatingJoystick";
 import PlayerDialog from "../components/PlayerDialog";
 import { loadProgress } from "../utils/progressStorage";
@@ -13,6 +15,8 @@ import {
     calculateCurrentStage,
     selectObjectiveLocation,
     resolveLocationEntryAction,
+    resolveNpcPatrolStep,
+    isPlayerNearNpc,
 } from "./mapScreen.logic";
 
 const victorianMapData = require("../../assets/lpc-victorian-preview-see-readme/lpc-victorian-preview/victorian-preview.json");
@@ -30,6 +34,7 @@ const PLAYER_COLLISION_OFFSET_Y = PLAYER_HITBOX - PLAYER_COLLISION_HEIGHT;
 const SPAWN_TILE_X = 56;
 const SPAWN_TILE_Y = 53;
 const LOCATION_TRIGGER_SIZE = 96;
+const NPC_TICK_MS = 80;
 
 const collisionLayers = victorianMapData.layers.filter((layer) => {
     const layerName = layer.name?.toLowerCase() ?? "";
@@ -76,6 +81,69 @@ const PLAYER_COLLISION_BOX = {
     offsetY: PLAYER_COLLISION_OFFSET_Y,
 };
 
+const npcRoutesLayer = victorianMapData.layers.find(
+    (layer) => layer.type === "objectgroup" && layer.name?.toLowerCase() === "npc_routes"
+);
+
+function buildNpcRouteMap(layer) {
+    const routeMap = {};
+
+    for (const obj of layer?.objects ?? []) {
+        if (!obj || obj.visible === false) continue;
+
+        const key = String(obj.name ?? "").trim().toLowerCase();
+        if (!key) continue;
+
+        if (!Array.isArray(obj.polyline) || obj.polyline.length < 2) continue;
+
+        const path = obj.polyline.map((point) => ({
+            x: obj.x + point.x,
+            y: obj.y + point.y,
+        }));
+
+        routeMap[key] = path;
+    }
+
+    return routeMap;
+}
+
+const npcRouteMapByName = buildNpcRouteMap(npcRoutesLayer);
+
+const npcConfigById = npcConfigs.reduce((acc, npc) => {
+    acc[npc.id] = npc;
+    return acc;
+}, {});
+
+function resolveNpcPatrolPath(config) {
+    const routeKeys = [config.routeObjectName, config.id, config.name]
+        .filter(Boolean)
+        .map((value) => String(value).toLowerCase());
+
+    for (const key of routeKeys) {
+        const route = npcRouteMapByName[key];
+        if (Array.isArray(route) && route.length > 0) {
+            return route;
+        }
+    }
+
+    return Array.isArray(config.patrolPath) ? config.patrolPath : [];
+}
+
+function buildInitialNpcState(config) {
+    const patrolPath = resolveNpcPatrolPath(config);
+    const spawn = patrolPath[0] ?? { x: 0, y: 0 };
+    const hasPatrol = patrolPath.length > 1;
+
+    return {
+        id: config.id,
+        x: spawn.x,
+        y: spawn.y,
+        targetIndex: hasPatrol ? 1 : 0,
+        direction: "down",
+        isMoving: false,
+    };
+}
+
 function getMapPointForLocation(locationId) {
     const locationLayer = victorianMapData.layers.find(
         (layer) =>
@@ -113,6 +181,7 @@ export default function MapScreen({ navigation }) {
     const [blockedLocationId, setBlockedLocationId] = useState(null);
     const [completedLocationIds, setCompletedLocationIds] = useState([]);
     const [playerDialog, setPlayerDialog] = useState({ visible: false, message: "" });
+    const [npcStates, setNpcStates] = useState(() => npcConfigs.map(buildInitialNpcState));
     const dialogTimeoutRef = useRef(null);
     const insideLocationsRef = useRef({});
 
@@ -273,6 +342,40 @@ export default function MapScreen({ navigation }) {
         return () => clearInterval(intervalId);
     }, []);
 
+    useEffect(() => {
+        if (!npcConfigs.length) return undefined;
+
+        const intervalId = setInterval(() => {
+            setNpcStates((prevStates) =>
+                prevStates.map((npcState) => {
+                    const config = npcConfigById[npcState.id];
+                    if (!config) return npcState;
+
+                    const patrolPath = resolveNpcPatrolPath(config);
+
+                    const step = resolveNpcPatrolStep({
+                        position: { x: npcState.x, y: npcState.y },
+                        patrolPath,
+                        targetIndex: npcState.targetIndex,
+                        speed: config.speedPxPerTick,
+                        arriveDistance: config.arriveDistancePx,
+                    });
+
+                    return {
+                        ...npcState,
+                        x: step.position.x,
+                        y: step.position.y,
+                        targetIndex: step.targetIndex,
+                        direction: step.direction,
+                        isMoving: step.isMoving,
+                    };
+                })
+            );
+        }, NPC_TICK_MS);
+
+        return () => clearInterval(intervalId);
+    }, []);
+
 
     const playerCenterX = position.x + PLAYER_HITBOX / 2;
     const playerCenterY = position.y + PLAYER_HITBOX / 2;
@@ -378,6 +481,21 @@ export default function MapScreen({ navigation }) {
             </View>
         );
     }, [objectiveLocation, playerCenterX, playerCenterY]);
+
+    const isNearAnyNpc = useMemo(() => {
+        return npcStates.some((npcState) => {
+            const config = npcConfigById[npcState.id];
+            if (!config?.hitbox) return false;
+
+            return isPlayerNearNpc({
+                playerPosition: position,
+                playerHitbox: PLAYER_COLLISION_BOX,
+                npcPosition: { x: npcState.x, y: npcState.y },
+                npcHitbox: config.hitbox,
+                padding: config.proximityPaddingPx ?? 0,
+            });
+        });
+    }, [npcStates, position]);
 
     return (
         <View style={{ flex: 1, backgroundColor: "#bfc7d1", overflow: "hidden" }}>
@@ -514,6 +632,23 @@ export default function MapScreen({ navigation }) {
                     }}
                 />
 
+                {npcStates.map((npcState) => {
+                    const config = npcConfigById[npcState.id];
+                    if (!config) return null;
+
+                    return (
+                        <Npc
+                            key={npcState.id}
+                            x={npcState.x}
+                            y={npcState.y}
+                            direction={npcState.direction}
+                            isMoving={npcState.isMoving}
+                            sprite={config.sprite}
+                            testID={`npc-${npcState.id}`}
+                        />
+                    );
+                })}
+
 
                 {/* Player com sprite e animação */}
                 <Player
@@ -556,6 +691,7 @@ export default function MapScreen({ navigation }) {
                             alvo: {objectiveLocation.name} | dist: {Math.round(Math.hypot(objectiveLocation.center.x - playerCenterX, objectiveLocation.center.y - playerCenterY))} px
                         </Text>
                     )}
+                    <Text style={{ color: "white", fontSize: 12 }}>npc perto: {isNearAnyNpc ? "sim" : "nao"}</Text>
                 </View>
             )}
 

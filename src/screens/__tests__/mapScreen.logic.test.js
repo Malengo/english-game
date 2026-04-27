@@ -8,6 +8,10 @@ import {
   calculateCurrentStage,
   selectObjectiveLocation,
   resolveLocationEntryAction,
+  getAabbRect,
+  areAabbsOverlapping,
+  isPlayerNearNpc,
+  resolveNpcPatrolStep,
 } from "../mapScreen.logic";
 
 describe("mapScreen.logic", () => {
@@ -131,6 +135,80 @@ describe("mapScreen.logic", () => {
     expect(resolveLocationEntryAction({ ...base, currentStage: 2 })).toBe("activate");
     expect(resolveLocationEntryAction({ ...base, currentStage: 1 })).toBe("block");
     expect(resolveLocationEntryAction({ ...base, wasInside: true, currentStage: 2 })).toBe("none");
+  });
+
+  it("monta retangulo AABB com offsets", () => {
+    const rect = getAabbRect(
+      { x: 200, y: 100 },
+      { width: 32, height: 32, offsetX: 0, offsetY: 0 }
+    );
+
+    expect(rect).toEqual({ x: 200, y: 100, width: 32, height: 32 });
+  });
+
+  it("detecta overlap de AABBs com padding", () => {
+    const first = { x: 0, y: 0, width: 10, height: 10 };
+    const second = { x: 12, y: 0, width: 10, height: 10 };
+
+    expect(areAabbsOverlapping(first, second, 0)).toBe(false);
+    expect(areAabbsOverlapping(first, second, 2)).toBe(true);
+  });
+
+  it("detecta quando player esta perto do NPC por AABB", () => {
+    const near = isPlayerNearNpc({
+      playerPosition: { x: 100, y: 80 },
+      playerHitbox: { width: 28, height: 16, offsetX: 6, offsetY: 24 },
+      npcPosition: { x: 122, y: 81 },
+      npcHitbox: { width: 32, height: 32, offsetX: 0, offsetY: 0 },
+      padding: 2,
+    });
+
+    const far = isPlayerNearNpc({
+      playerPosition: { x: 100, y: 80 },
+      playerHitbox: { width: 28, height: 16, offsetX: 6, offsetY: 24 },
+      npcPosition: { x: 300, y: 300 },
+      npcHitbox: { width: 32, height: 32, offsetX: 0, offsetY: 0 },
+      padding: 2,
+    });
+
+    expect(near).toBe(true);
+    expect(far).toBe(false);
+  });
+
+  it("avanca NPC em direcao ao proximo waypoint", () => {
+    const step = resolveNpcPatrolStep({
+      position: { x: 100, y: 100 },
+      patrolPath: [
+        { x: 100, y: 100 },
+        { x: 120, y: 100 },
+      ],
+      targetIndex: 1,
+      speed: 5,
+      arriveDistance: 1,
+    });
+
+    expect(step.position.x).toBe(105);
+    expect(step.position.y).toBe(100);
+    expect(step.targetIndex).toBe(1);
+    expect(step.direction).toBe("right");
+    expect(step.isMoving).toBe(true);
+  });
+
+  it("troca waypoint quando ja esta no alvo", () => {
+    const step = resolveNpcPatrolStep({
+      position: { x: 120, y: 100 },
+      patrolPath: [
+        { x: 100, y: 100 },
+        { x: 120, y: 100 },
+      ],
+      targetIndex: 1,
+      speed: 5,
+      arriveDistance: 1,
+    });
+
+    expect(step.targetIndex).toBe(0);
+    expect(step.direction).toBe("left");
+    expect(step.isMoving).toBe(true);
   });
 });
 

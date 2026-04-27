@@ -70,6 +70,46 @@
         }, 
         {
          "draworder":"topdown",
+         "id":16,
+         "name":"npc_routes",
+         "objects":[
+                {
+                 "height":0,
+                 "id":45,
+                 "name":"mage--Swen",
+                 "opacity":1,
+                 "polygon":[
+                        {
+                         "x":0,
+                         "y":0
+                        }, 
+                        {
+                         "x":806,
+                         "y":-8
+                        }, 
+                        {
+                         "x":810,
+                         "y":646
+                        }, 
+                        {
+                         "x":-8,
+                         "y":658
+                        }],
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":0,
+                 "x":1424,
+                 "y":1232
+                }],
+         "opacity":1,
+         "type":"objectgroup",
+         "visible":true,
+         "x":0,
+         "y":0
+        }, 
+        {
+         "draworder":"topdown",
          "id":15,
          "name":"house",
          "objects":[
@@ -1098,8 +1138,8 @@
          "x":0,
          "y":0
         }],
- "nextlayerid":16,
- "nextobjectid":44,
+ "nextlayerid":17,
+ "nextobjectid":46,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tiledversion":"1.12.1",
