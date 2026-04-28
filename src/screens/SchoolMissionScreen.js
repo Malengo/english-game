@@ -1,12 +1,13 @@
 import React from "react";
 import { View, Text, TouchableOpacity } from "react-native";
-import { markLocationCompleted } from "../utils/progressStorage";
+import { markLocationCompleted, markSchoolVisited } from "../utils/progressStorage";
 
 export default function SchoolMissionScreen({ navigation, route }) {
   const autoStart = route?.params?.autoStart;
 
   const handleCompleteMission = async () => {
     await markLocationCompleted("school");
+    await markSchoolVisited();
     navigation.goBack();
   };
 
@@ -42,4 +43,3 @@ export default function SchoolMissionScreen({ navigation, route }) {
     </View>
   );
 }
-

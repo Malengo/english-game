@@ -12,6 +12,9 @@ jest.mock("../../data/locationConfig", () => ({
 
 jest.mock("../../utils/progressStorage", () => ({
   loadProgress: (...args) => mockLoadProgress(...args),
+  markSchoolVisited: () => Promise.resolve(),
+  hasVisitedSchoolToday: () => Promise.resolve(true),
+  ensureDailyMissions: () => Promise.resolve([]),
 }));
 
 jest.mock("../../data/npcConfig", () => ({
@@ -124,6 +127,4 @@ describe("MapScreen integration", () => {
     expect(navigation.navigate).not.toHaveBeenCalled();
   });
 });
-
-
 

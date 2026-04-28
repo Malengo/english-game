@@ -8,7 +8,7 @@ import Player from "../components/Player";
 import Npc from "../components/Npc";
 import FloatingJoystick from "../components/FloatingJoystick";
 import PlayerDialog from "../components/PlayerDialog";
-import { loadProgress } from "../utils/progressStorage";
+import { loadProgress, markSchoolVisited, hasVisitedSchoolToday, ensureDailyMissions } from "../utils/progressStorage";
 import {
     clamp,
     resolveMovementStep,
@@ -36,8 +36,6 @@ const SPAWN_TILE_X = 56;
 const SPAWN_TILE_Y = 53;
 const LOCATION_TRIGGER_SIZE = 96;
 const NPC_TICK_MS = 80;
-// When player interrupts a moving NPC, pause duration in ms
-const NPC_PAUSE_MS = 3000;
 
 const collisionLayers = victorianMapData.layers.filter((layer) => {
     const layerName = layer.name?.toLowerCase() ?? "";
@@ -101,12 +99,10 @@ function buildNpcRouteMap(layer) {
         const pathPoints = obj.polyline ?? obj.polygon ?? [];
         if (!Array.isArray(pathPoints) || pathPoints.length < 2) continue;
 
-        const path = pathPoints.map((point) => ({
+        routeMap[key] = pathPoints.map((point) => ({
             x: obj.x + point.x,
             y: obj.y + point.y,
         }));
-
-        routeMap[key] = path;
     }
 
     return routeMap;
@@ -136,7 +132,7 @@ function resolveNpcPatrolPath(config) {
 
 // Exposed helper to run one NPC tick deterministically (useful for tests).
 // Returns { newNpcStates, newNpcPausedMap, dialogs }
-export function processNpcTick({ npcStates, position, npcPausedMap = {}, npcNearMap = {}, now = Date.now(), npcPauseMs = NPC_PAUSE_MS }) {
+export function processNpcTick({ npcStates, position, npcPausedMap = {}, npcNearMap = {} }) {
     const newNpcPausedMap = { ...npcPausedMap };
     const newNpcNearMap = { ...npcNearMap };
     const dialogs = [];
@@ -153,7 +149,7 @@ export function processNpcTick({ npcStates, position, npcPausedMap = {}, npcNear
         if (!config) return npcState;
 
         const wasNear = Boolean(npcNearMap[npcState.id]);
-        let near = false;
+        let near;
 
         try {
             near = isPlayerNearNpc({
@@ -163,15 +159,17 @@ export function processNpcTick({ npcStates, position, npcPausedMap = {}, npcNear
                 npcHitbox: config.hitbox,
                 padding: config.proximityPaddingPx ?? 0,
             });
-        } catch (e) {
+        } catch (_error) {
             near = false;
         }
 
-        if (wasNear && !near) {
+        const isNear = Boolean(near);
+
+        if (wasNear && !isNear) {
             exitedNpcIds.push(npcState.id);
         }
 
-        newNpcNearMap[npcState.id] = near;
+        newNpcNearMap[npcState.id] = isNear;
 
         const patrolPath = resolveNpcPatrolPath(config);
         const hasPatrol = patrolPath.length > 1;
@@ -184,7 +182,7 @@ export function processNpcTick({ npcStates, position, npcPausedMap = {}, npcNear
             arriveDistance: config.arriveDistancePx,
         });
 
-        if (near) {
+        if (isNear) {
             if (!wasNear && hasPatrol) {
                 const npcRect = getAabbRect({ x: npcState.x, y: npcState.y }, config.hitbox);
                 const npcCenter = {
@@ -298,6 +296,7 @@ export default function MapScreen({ navigation }) {
     const [playerDialog, setPlayerDialog] = useState({ visible: false, message: "" });
     const [npcDialog, setNpcDialog] = useState({ visible: false, message: "" });
     const [npcStates, setNpcStates] = useState(() => npcConfigs.map(buildInitialNpcState));
+    const [objectiveOverrideId, setObjectiveOverrideId] = useState(null);
     const dialogTimeoutRef = useRef(null);
     const npcDialogTimeoutRef = useRef(null);
     const insideLocationsRef = useRef({});
@@ -526,8 +525,6 @@ export default function MapScreen({ navigation }) {
                     position: positionRef.current,
                     npcPausedMap: npcPausedRef.current,
                     npcNearMap: npcNearRef.current,
-                    now: Date.now(),
-                    npcPauseMs: NPC_PAUSE_MS,
                 });
 
                 // Apply paused map updates
@@ -541,9 +538,63 @@ export default function MapScreen({ navigation }) {
                 // If any dialog requests were produced, show the first one (UI supports one at a time)
                 if (Array.isArray(dialogs) && dialogs.length > 0) {
                     const d = dialogs[0];
+
+                    if (d.npcId === "mage-guide") {
+                        // Mage-SWEN controla o fluxo diario: escola primeiro, depois missoes diarias
+                        void (async () => {
+                            try {
+                                const visited = await hasVisitedSchoolToday();
+
+                                if (!visited) {
+                                    showNpcDialog(
+                                        "Voce ainda nao foi na Escola hoje. Va ate la para liberar as missoes diarias.",
+                                        {
+                                            anchorX: d.anchorX,
+                                            anchorY: d.anchorY,
+                                            npcId: d.npcId,
+                                            ctaLabel: "Ir para Escola",
+                                            onPressCta: () => setObjectiveOverrideId("school"),
+                                        }
+                                    );
+                                    return;
+                                }
+
+                                const missions = await ensureDailyMissions();
+                                const missionTitles = (missions ?? []).map((mission) => mission.title).join(" • ");
+
+                                showNpcDialog(
+                                    `Missoes diarias criadas: ${missionTitles}`,
+                                    {
+                                        anchorX: d.anchorX,
+                                        anchorY: d.anchorY,
+                                        npcId: d.npcId,
+                                        autoHideMs: 8000,
+                                    }
+                                );
+                            } catch (_error) {
+                                try {
+                                    showNpcDialog(d.message, {
+                                        anchorX: d.anchorX,
+                                        anchorY: d.anchorY,
+                                        autoHideMs: d.autoHideMs,
+                                        npcId: d.npcId,
+                                    });
+                                } catch (_dialogError) {
+                                    // ignore dialog failures during ticks
+                                }
+                            }
+                        })();
+                        return newNpcStates;
+                    }
+
                     try {
-                        showNpcDialog(d.message, { anchorX: d.anchorX, anchorY: d.anchorY, autoHideMs: d.autoHideMs, npcId: d.npcId });
-                    } catch (e) {
+                        showNpcDialog(d.message, {
+                            anchorX: d.anchorX,
+                            anchorY: d.anchorY,
+                            autoHideMs: d.autoHideMs,
+                            npcId: d.npcId,
+                        });
+                    } catch (_error) {
                         // ignore dialog failures during ticks
                     }
                 }
@@ -561,10 +612,13 @@ export default function MapScreen({ navigation }) {
     const playerHeadX = playerCenterX;
     const playerHeadY = position.y + PLAYER_HEAD_OFFSET_Y;
 
-    const objectiveLocation = useMemo(
-        () => selectObjectiveLocation(locationTriggers, currentStage),
-        [locationTriggers, currentStage]
-    );
+    const objectiveLocation = useMemo(() => {
+        if (objectiveOverrideId) {
+            return locationTriggers.find((location) => location.id === objectiveOverrideId) ?? null;
+        }
+
+        return selectObjectiveLocation(locationTriggers, currentStage);
+    }, [locationTriggers, currentStage, objectiveOverrideId]);
 
     const cameraX = clamp(
         playerCenterX - viewportWidth / 2,
@@ -630,6 +684,12 @@ export default function MapScreen({ navigation }) {
 
             if (action === "activate") {
                 setActiveLocationId(location.id);
+
+                if (location.id === "school") {
+                    // Marca a visita diaria assim que o player entra na escola
+                    markSchoolVisited().catch(() => {});
+                    setObjectiveOverrideId(null);
+                }
             }
 
             if (action === "block") {

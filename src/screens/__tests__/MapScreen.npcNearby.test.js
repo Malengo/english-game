@@ -1,6 +1,3 @@
-import React from 'react';
-import { render, waitFor, act } from '@testing-library/react-native';
-
 jest.useFakeTimers();
 
 // Mock locationConfig minimal (no locations needed)
@@ -11,17 +8,12 @@ jest.mock('../../data/locationConfig', () => ({
 // Mock progress storage
 jest.mock('../../utils/progressStorage', () => ({
   loadProgress: () => Promise.resolve({ completedLocationIds: [] }),
+  markSchoolVisited: () => Promise.resolve(),
+  hasVisitedSchoolToday: () => Promise.resolve(true),
+  ensureDailyMissions: () => Promise.resolve([]),
 }));
 
 // Provide a controlled npcConfigs so the NPC spawns at the player's initial spawn
-const victorianMap = require('../../../assets/lpc-victorian-preview-see-readme/lpc-victorian-preview/victorian-preview.json');
-const TILE_WIDTH = victorianMap.tilewidth;
-const TILE_HEIGHT = victorianMap.tileheight;
-const SPAWN_TILE_X = 56;
-const SPAWN_TILE_Y = 53;
-const SPAWN_X = SPAWN_TILE_X * TILE_WIDTH;
-const SPAWN_Y = SPAWN_TILE_Y * TILE_HEIGHT;
-
 jest.mock('../../data/npcConfig', () => ({
   npcConfigs: [
     {
@@ -88,8 +80,6 @@ describe('MapScreen NPC proximity (logic)', () => {
       position: playerPosition,
       npcPausedMap: {},
       npcNearMap: {},
-      now: Date.now(),
-      npcPauseMs: 3000,
     });
 
     expect(first).toBeDefined();
@@ -103,8 +93,6 @@ describe('MapScreen NPC proximity (logic)', () => {
       position: playerPosition,
       npcPausedMap: first.newNpcPausedMap,
       npcNearMap: first.newNpcNearMap,
-      now: Date.now(),
-      npcPauseMs: 3000,
     });
 
     expect(second.dialogs.length).toBe(0);
@@ -116,8 +104,6 @@ describe('MapScreen NPC proximity (logic)', () => {
       position: farPosition,
       npcPausedMap: second.newNpcPausedMap,
       npcNearMap: second.newNpcNearMap,
-      now: Date.now(),
-      npcPauseMs: 3000,
     });
 
     expect(third.exitedNpcIds).toContain('mage-guide');
@@ -128,8 +114,6 @@ describe('MapScreen NPC proximity (logic)', () => {
       position: playerPosition,
       npcPausedMap: third.newNpcPausedMap,
       npcNearMap: third.newNpcNearMap,
-      now: Date.now(),
-      npcPauseMs: 3000,
     });
 
     expect(fourth.dialogs.length).toBeGreaterThan(0);

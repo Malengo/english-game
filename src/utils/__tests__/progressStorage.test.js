@@ -1,5 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { loadProgress, saveProgress, markLocationCompleted } from "../progressStorage";
+import { loadProgress, saveProgress, markLocationCompleted, markSchoolVisited, hasVisitedSchoolToday, ensureDailyMissions } from "../progressStorage";
 
 describe("progressStorage", () => {
   beforeEach(async () => {
@@ -33,5 +33,22 @@ describe("progressStorage", () => {
     const next = await markLocationCompleted("house");
     expect(next).toEqual({ completedLocationIds: ["school", "house"] });
   });
-});
 
+  it("marca visita na escola e valida visita do dia", async () => {
+    await markSchoolVisited();
+
+    await expect(hasVisitedSchoolToday()).resolves.toBe(true);
+  });
+
+  it("cria missoes diarias apenas uma vez por dia", async () => {
+    const first = await ensureDailyMissions();
+    const second = await ensureDailyMissions();
+
+    expect(first.length).toBeGreaterThan(0);
+    expect(second).toEqual(first);
+
+    const stored = await loadProgress();
+    expect(stored.dailyMissionsDate).toBeDefined();
+    expect(Array.isArray(stored.dailyMissions)).toBe(true);
+  });
+});
