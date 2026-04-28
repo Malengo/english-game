@@ -35,6 +35,8 @@ const SPAWN_TILE_X = 56;
 const SPAWN_TILE_Y = 53;
 const LOCATION_TRIGGER_SIZE = 96;
 const NPC_TICK_MS = 80;
+// When player interrupts a moving NPC, pause duration in ms
+const NPC_PAUSE_MS = 3000;
 
 const collisionLayers = victorianMapData.layers.filter((layer) => {
     const layerName = layer.name?.toLowerCase() ?? "";
@@ -94,9 +96,11 @@ function buildNpcRouteMap(layer) {
         const key = String(obj.name ?? "").trim().toLowerCase();
         if (!key) continue;
 
-        if (!Array.isArray(obj.polyline) || obj.polyline.length < 2) continue;
+        // Aceita polygon ou polyline (ambas as exportações Tiled)
+        const pathPoints = obj.polyline ?? obj.polygon ?? [];
+        if (!Array.isArray(pathPoints) || pathPoints.length < 2) continue;
 
-        const path = obj.polyline.map((point) => ({
+        const path = pathPoints.map((point) => ({
             x: obj.x + point.x,
             y: obj.y + point.y,
         }));
@@ -129,7 +133,78 @@ function resolveNpcPatrolPath(config) {
     return Array.isArray(config.patrolPath) ? config.patrolPath : [];
 }
 
-function buildInitialNpcState(config) {
+// Exposed helper to run one NPC tick deterministically (useful for tests).
+// Returns { newNpcStates, newNpcPausedMap, dialogs }
+export function processNpcTick({ npcStates, position, npcPausedMap = {}, now = Date.now(), npcPauseMs = NPC_PAUSE_MS }) {
+    const newNpcPausedMap = { ...npcPausedMap };
+    const dialogs = [];
+
+    const newNpcStates = npcStates.map((npcState) => {
+        const config = npcConfigById[npcState.id];
+        if (!config) return npcState;
+
+        const pausedUntil = newNpcPausedMap[npcState.id] ?? 0;
+        if (now < pausedUntil) {
+            return { ...npcState, isMoving: false };
+        }
+
+        const patrolPath = resolveNpcPatrolPath(config);
+        const hasPatrol = patrolPath.length > 1;
+
+        const step = resolveNpcPatrolStep({
+            position: { x: npcState.x, y: npcState.y },
+            patrolPath,
+            targetIndex: npcState.targetIndex,
+            speed: config.speedPxPerTick,
+            arriveDistance: config.arriveDistancePx,
+        });
+
+        let near = false;
+        try {
+            near = isPlayerNearNpc({
+                playerPosition: position,
+                playerHitbox: PLAYER_COLLISION_BOX,
+                npcPosition: { x: npcState.x, y: npcState.y },
+                npcHitbox: config.hitbox,
+                padding: config.proximityPaddingPx ?? 0,
+            });
+        } catch (e) {
+            near = false;
+        }
+
+        if (near && (step.isMoving || npcState.isMoving) && hasPatrol) {
+            newNpcPausedMap[npcState.id] = now + npcPauseMs;
+
+            const anchorX = step.position.x + (config.hitbox?.width ?? 16) / 2;
+            const anchorY = step.position.y - 8;
+            const message = config.onNearbyMessage ?? "Oi! Espera um instante...";
+
+            dialogs.push({ npcId: npcState.id, message, anchorX, anchorY, autoHideMs: npcPauseMs });
+
+            return {
+                ...npcState,
+                x: step.position.x,
+                y: step.position.y,
+                targetIndex: step.targetIndex,
+                direction: step.direction,
+                isMoving: false,
+            };
+        }
+
+        return {
+            ...npcState,
+            x: step.position.x,
+            y: step.position.y,
+            targetIndex: step.targetIndex,
+            direction: step.direction,
+            isMoving: step.isMoving,
+        };
+    });
+
+    return { newNpcStates, newNpcPausedMap, dialogs };
+}
+
+export function buildInitialNpcState(config) {
     const patrolPath = resolveNpcPatrolPath(config);
     const spawn = patrolPath[0] ?? { x: 0, y: 0 };
     const hasPatrol = patrolPath.length > 1;
@@ -140,7 +215,8 @@ function buildInitialNpcState(config) {
         y: spawn.y,
         targetIndex: hasPatrol ? 1 : 0,
         direction: "down",
-        isMoving: false,
+        // Start moving immediately when a patrol path exists so proximity checks can react
+        isMoving: hasPatrol,
     };
 }
 
@@ -177,13 +253,18 @@ export default function MapScreen({ navigation }) {
     const [lastDirection, setLastDirection] = useState("down");
     const [isMoving, setIsMoving] = useState(false);
     const moveVectorRef = useRef({ x: 0, y: 0 });
+    const positionRef = useRef(INITIAL_POSITION);
     const [activeLocationId, setActiveLocationId] = useState(null);
     const [blockedLocationId, setBlockedLocationId] = useState(null);
     const [completedLocationIds, setCompletedLocationIds] = useState([]);
     const [playerDialog, setPlayerDialog] = useState({ visible: false, message: "" });
+    const [npcDialog, setNpcDialog] = useState({ visible: false, message: "" });
     const [npcStates, setNpcStates] = useState(() => npcConfigs.map(buildInitialNpcState));
     const dialogTimeoutRef = useRef(null);
+    const npcDialogTimeoutRef = useRef(null);
     const insideLocationsRef = useRef({});
+    // Track paused until timestamp per NPC id (ms since epoch)
+    const npcPausedRef = useRef({});
 
     const locationTriggers = useMemo(
         () =>
@@ -248,20 +329,61 @@ export default function MapScreen({ navigation }) {
         setPlayerDialog((prev) => ({ ...prev, visible: false }));
     }, []);
 
+    const hideNpcDialog = useCallback(() => {
+        if (npcDialogTimeoutRef.current) {
+            clearTimeout(npcDialogTimeoutRef.current);
+            npcDialogTimeoutRef.current = null;
+        }
+        setNpcDialog((prev) => ({ ...prev, visible: false, npcId: undefined }));
+    }, []);
+
     const showPlayerDialog = useCallback((message, options = {}) => {
-        const { autoHideMs = 0 } = options;
+        const {
+            autoHideMs = 0,
+            anchorX = null,
+            anchorY = null,
+            ctaLabel = undefined,
+            onPressCta = undefined,
+            width = undefined,
+        } = options;
 
         if (dialogTimeoutRef.current) {
             clearTimeout(dialogTimeoutRef.current);
             dialogTimeoutRef.current = null;
         }
 
-        setPlayerDialog({ visible: true, message });
+        setPlayerDialog({ visible: true, message, anchorX, anchorY, ctaLabel, onPressCta, width });
 
         if (autoHideMs > 0) {
             dialogTimeoutRef.current = setTimeout(() => {
                 setPlayerDialog((prev) => ({ ...prev, visible: false }));
                 dialogTimeoutRef.current = null;
+            }, autoHideMs);
+        }
+    }, []);
+
+    const showNpcDialog = useCallback((message, options = {}) => {
+        const {
+            autoHideMs = 0,
+            anchorX = null,
+            anchorY = null,
+            ctaLabel = undefined,
+            onPressCta = undefined,
+            width = undefined,
+            npcId = undefined,
+        } = options;
+
+        if (npcDialogTimeoutRef.current) {
+            clearTimeout(npcDialogTimeoutRef.current);
+            npcDialogTimeoutRef.current = null;
+        }
+
+        setNpcDialog({ visible: true, message, anchorX, anchorY, ctaLabel, onPressCta, width, npcId });
+
+        if (autoHideMs > 0) {
+            npcDialogTimeoutRef.current = setTimeout(() => {
+                setNpcDialog((prev) => ({ ...prev, visible: false, npcId: undefined }));
+                npcDialogTimeoutRef.current = null;
             }, autoHideMs);
         }
     }, []);
@@ -308,8 +430,15 @@ export default function MapScreen({ navigation }) {
             if (dialogTimeoutRef.current) {
                 clearTimeout(dialogTimeoutRef.current);
             }
+            if (npcDialogTimeoutRef.current) {
+                clearTimeout(npcDialogTimeoutRef.current);
+            }
         };
     }, [showPlayerDialog]);
+
+    useEffect(() => {
+        positionRef.current = position;
+    }, [position]);
 
     // Loop unico de movimento para evitar recriar intervalos a cada frame do joystick
     useEffect(() => {
@@ -346,35 +475,35 @@ export default function MapScreen({ navigation }) {
         if (!npcConfigs.length) return undefined;
 
         const intervalId = setInterval(() => {
-            setNpcStates((prevStates) =>
-                prevStates.map((npcState) => {
-                    const config = npcConfigById[npcState.id];
-                    if (!config) return npcState;
+            // Use the deterministic tick processor to compute next npc states and any dialogs
+            setNpcStates((prevStates) => {
+                const { newNpcStates, newNpcPausedMap, dialogs } = processNpcTick({
+                    npcStates: prevStates,
+                    position: positionRef.current,
+                    npcPausedMap: npcPausedRef.current,
+                    now: Date.now(),
+                    npcPauseMs: NPC_PAUSE_MS,
+                });
 
-                    const patrolPath = resolveNpcPatrolPath(config);
+                // Apply paused map updates
+                npcPausedRef.current = { ...npcPausedRef.current, ...newNpcPausedMap };
 
-                    const step = resolveNpcPatrolStep({
-                        position: { x: npcState.x, y: npcState.y },
-                        patrolPath,
-                        targetIndex: npcState.targetIndex,
-                        speed: config.speedPxPerTick,
-                        arriveDistance: config.arriveDistancePx,
-                    });
+                // If any dialog requests were produced, show the first one (UI supports one at a time)
+                if (Array.isArray(dialogs) && dialogs.length > 0) {
+                    const d = dialogs[0];
+                    try {
+                        showNpcDialog(d.message, { anchorX: d.anchorX, anchorY: d.anchorY, autoHideMs: d.autoHideMs, npcId: d.npcId });
+                    } catch (e) {
+                        // ignore dialog failures during ticks
+                    }
+                }
 
-                    return {
-                        ...npcState,
-                        x: step.position.x,
-                        y: step.position.y,
-                        targetIndex: step.targetIndex,
-                        direction: step.direction,
-                        isMoving: step.isMoving,
-                    };
-                })
-            );
+                return newNpcStates;
+            });
         }, NPC_TICK_MS);
 
         return () => clearInterval(intervalId);
-    }, []);
+    }, [showNpcDialog]);
 
 
     const playerCenterX = position.x + PLAYER_HITBOX / 2;
@@ -397,6 +526,33 @@ export default function MapScreen({ navigation }) {
         playerCenterY - viewportHeight / 2,
         0,
         Math.max(0, WORLD_HEIGHT - viewportHeight)
+    );
+
+    const resolveDialogAnchor = useCallback(
+        (anchorX, anchorY, fallbackX, fallbackY) => {
+            const worldX = typeof anchorX === "number" ? anchorX : fallbackX;
+            const worldY = typeof anchorY === "number" ? anchorY : fallbackY;
+
+            return {
+                x: worldX - cameraX,
+                y: worldY - cameraY,
+            };
+        },
+        [cameraX, cameraY]
+    );
+
+    const playerDialogAnchor = resolveDialogAnchor(
+        playerDialog.anchorX,
+        playerDialog.anchorY,
+        playerHeadX,
+        playerHeadY
+    );
+
+    const npcDialogAnchor = resolveDialogAnchor(
+        npcDialog.anchorX,
+        npcDialog.anchorY,
+        playerHeadX,
+        playerHeadY
     );
 
     // Detecta entrada nas areas de localizacao e abre modal quando permitido
@@ -660,16 +816,34 @@ export default function MapScreen({ navigation }) {
                     useImage={true}
                 />
 
-                <PlayerDialog
-                    visible={playerDialog.visible}
-                    message={playerDialog.message}
-                    anchorX={playerHeadX}
-                    anchorY={playerHeadY}
-                    onClose={hidePlayerDialog}
-                />
-
                 {/* debug marker removed */}
             </View>
+
+            <PlayerDialog
+                visible={playerDialog.visible}
+                message={playerDialog.message}
+                anchorX={playerDialogAnchor.x}
+                anchorY={playerDialogAnchor.y}
+                ctaLabel={playerDialog.ctaLabel}
+                onPressCta={playerDialog.onPressCta}
+                width={playerDialog.width}
+                onClose={hidePlayerDialog}
+                variant="player"
+            />
+
+            <PlayerDialog
+                visible={npcDialog.visible}
+                message={npcDialog.message}
+                anchorX={npcDialogAnchor.x}
+                anchorY={npcDialogAnchor.y}
+                ctaLabel={npcDialog.ctaLabel}
+                onPressCta={npcDialog.onPressCta}
+                width={npcDialog.width}
+                onClose={hideNpcDialog}
+                variant="npc"
+                avatarSource={npcConfigById[npcDialog.npcId]?.sprite?.source}
+                avatarAlt={npcConfigById[npcDialog.npcId]?.name}
+            />
 
             {/* Debug overlay em modo de desenvolvimento */}
             {SHOW_DEBUG_HUD && (

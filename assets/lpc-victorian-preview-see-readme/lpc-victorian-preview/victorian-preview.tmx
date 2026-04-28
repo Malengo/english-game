@@ -902,8 +902,8 @@
   </object>
  </objectgroup>
  <objectgroup id="16" name="npc_routes">
-  <object id="45" name="mage--Swen" x="1424" y="1232">
-   <polygon points="0,0 806,-8 810,646 -8,658"/>
+  <object id="45" name="mage--Swen" x="1467.14" y="1220.12">
+   <polygon points="0,0 719.291,-8.12012 722.861,655.7 -7.13936,667.88"/>
   </object>
  </objectgroup>
  <objectgroup id="15" name="house">

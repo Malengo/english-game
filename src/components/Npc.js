@@ -3,12 +3,13 @@ import { Image, View } from "react-native";
 
 const DEFAULT_SPRITE = {
   source: require("../../assets/images/npc/mage-SWEN.png"),
-  sheetWidth: 96,
-  sheetHeight: 128,
+  // Updated sprite: each frame is 48x64 (cols x rows remain 3x4)
+  sheetWidth: 144, // 3 * 48
+  sheetHeight: 256, // 4 * 64
   cols: 3,
   rows: 4,
-  displayWidth: 32,
-  displayHeight: 32,
+  displayWidth: 48,
+  displayHeight: 64,
   hitboxSize: 32,
   idleFrame: 1,
   directionRows: {
@@ -24,13 +25,19 @@ export default function Npc({
   y,
   direction = "down",
   isMoving = false,
-  sprite = DEFAULT_SPRITE,
+  sprite,
   testID = "npc-container",
 }) {
-  const [frameIndex, setFrameIndex] = useState(sprite.idleFrame ?? 1);
+  // Merge com DEFAULT_SPRITE para garantir todas as propriedades
+  const mergedSprite = useMemo(
+    () => ({ ...DEFAULT_SPRITE, ...(sprite || {}) }),
+    [sprite]
+  );
+
+  const [frameIndex, setFrameIndex] = useState(mergedSprite.idleFrame ?? 1);
 
   useEffect(() => {
-    const idleFrame = sprite.idleFrame ?? 1;
+    const idleFrame = mergedSprite.idleFrame ?? 1;
 
     if (!isMoving) {
       setFrameIndex(idleFrame);
@@ -47,17 +54,17 @@ export default function Npc({
     }, 90);
 
     return () => clearInterval(animationInterval);
-  }, [isMoving, sprite.idleFrame]);
+  }, [isMoving, mergedSprite.idleFrame]);
 
   const frame = useMemo(() => {
-    const cols = sprite.cols ?? 3;
-    const rows = sprite.rows ?? 4;
-    const frameWidth = (sprite.sheetWidth ?? 96) / cols;
-    const frameHeight = (sprite.sheetHeight ?? 128) / rows;
-    const displayWidth = sprite.displayWidth ?? DEFAULT_SPRITE.displayWidth;
-    const displayHeight = sprite.displayHeight ?? DEFAULT_SPRITE.displayHeight;
-    const hitboxSize = sprite.hitboxSize ?? DEFAULT_SPRITE.hitboxSize;
-    const directionRows = sprite.directionRows ?? DEFAULT_SPRITE.directionRows;
+    const cols = mergedSprite.cols ?? 3;
+    const rows = mergedSprite.rows ?? 4;
+    const frameWidth = (mergedSprite.sheetWidth ?? 96) / cols;
+    const frameHeight = (mergedSprite.sheetHeight ?? 128) / rows;
+    const displayWidth = mergedSprite.displayWidth ?? DEFAULT_SPRITE.displayWidth;
+    const displayHeight = mergedSprite.displayHeight ?? DEFAULT_SPRITE.displayHeight;
+    const hitboxSize = mergedSprite.hitboxSize ?? DEFAULT_SPRITE.hitboxSize;
+    const directionRows = mergedSprite.directionRows ?? DEFAULT_SPRITE.directionRows;
     const rowIndex = directionRows[direction] ?? directionRows.down ?? 2;
 
     return {
@@ -70,7 +77,7 @@ export default function Npc({
       hitboxSize,
       rowIndex,
     };
-  }, [direction, sprite]);
+  }, [direction, mergedSprite]);
 
   const scaleX = frame.displayWidth / frame.frameWidth;
   const scaleY = frame.displayHeight / frame.frameHeight;
@@ -90,10 +97,10 @@ export default function Npc({
       }}
     >
       <Image
-        source={sprite.source}
+        source={mergedSprite.source}
         style={{
-          width: (sprite.sheetWidth ?? 96) * scaleX,
-          height: (sprite.sheetHeight ?? 128) * scaleY,
+          width: (mergedSprite.sheetWidth ?? 96) * scaleX,
+          height: (mergedSprite.sheetHeight ?? 128) * scaleY,
           marginLeft: offsetX,
           marginTop: offsetY,
         }}

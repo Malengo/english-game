@@ -22,12 +22,13 @@ export const npcConfigs = [
     },
     sprite: {
       source: require("../../assets/images/npc/mage-SWEN.png"),
-      sheetWidth: 96,
-      sheetHeight: 128,
+      // Frames updated to 48x64 each (3 cols x 4 rows)
+      sheetWidth: 144, // 3 * 48
+      sheetHeight: 256, // 4 * 64
       cols: 3,
       rows: 4,
-      displayWidth: 32,
-      displayHeight: 32,
+      displayWidth: 48,
+      displayHeight: 64,
       hitboxSize: 32,
       idleFrame: 1,
       directionRows: {
