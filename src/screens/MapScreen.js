@@ -841,7 +841,7 @@ export default function MapScreen({ navigation }) {
                 width={npcDialog.width}
                 onClose={hideNpcDialog}
                 variant="npc"
-                avatarSource={npcConfigById[npcDialog.npcId]?.sprite?.source}
+                avatarSource={npcConfigById[npcDialog.npcId]?.dialogAvatarSource ?? npcConfigById[npcDialog.npcId]?.sprite?.source}
                 avatarAlt={npcConfigById[npcDialog.npcId]?.name}
             />
 

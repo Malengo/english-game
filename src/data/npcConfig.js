@@ -38,6 +38,7 @@ export const npcConfigs = [
         left: 3,
       },
     },
+    // Dialog avatar uses the NPC body image
+    dialogAvatarSource: require("../../assets/images/npc/mage-SWEN-body.png"),
   },
 ];
-

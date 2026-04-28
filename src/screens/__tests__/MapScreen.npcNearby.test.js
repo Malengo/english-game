@@ -50,6 +50,7 @@ jest.mock('../../data/npcConfig', () => ({
         idleFrame: 1,
         directionRows: { up: 0, right: 1, down: 2, left: 3 },
       },
+      dialogAvatarSource: require('../../../assets/images/npc/mage-SWEN-body.png'),
     },
   ],
 }));
@@ -92,6 +93,8 @@ describe('MapScreen NPC proximity (logic)', () => {
     expect(result.dialogs[0].message).toMatch(/Oi! Espera um instante...|Oi!/i);
   });
 });
+
+
 
 
 
