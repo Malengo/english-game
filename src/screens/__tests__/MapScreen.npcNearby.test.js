@@ -83,20 +83,55 @@ describe('MapScreen NPC proximity (logic)', () => {
     // Place player at the same spawn position as mocked patrolPath so proximity is immediate
     const playerPosition = { x: 1000, y: 1000 };
 
-    const result = processNpcTick({ npcStates, position: playerPosition, npcPausedMap: {}, now: Date.now(), npcPauseMs: 3000 });
+    const first = processNpcTick({
+      npcStates,
+      position: playerPosition,
+      npcPausedMap: {},
+      npcNearMap: {},
+      now: Date.now(),
+      npcPauseMs: 3000,
+    });
 
+    expect(first).toBeDefined();
+    expect(Array.isArray(first.dialogs)).toBe(true);
+    expect(first.dialogs.length).toBeGreaterThan(0);
+    expect(first.dialogs[0].message).toMatch(/Oi! Espera um instante...|Oi!/i);
 
+    // Still near: should not repeat dialog
+    const second = processNpcTick({
+      npcStates: first.newNpcStates,
+      position: playerPosition,
+      npcPausedMap: first.newNpcPausedMap,
+      npcNearMap: first.newNpcNearMap,
+      now: Date.now(),
+      npcPauseMs: 3000,
+    });
 
-    expect(result).toBeDefined();
-    expect(Array.isArray(result.dialogs)).toBe(true);
-    expect(result.dialogs.length).toBeGreaterThan(0);
-    expect(result.dialogs[0].message).toMatch(/Oi! Espera um instante...|Oi!/i);
+    expect(second.dialogs.length).toBe(0);
+
+    // Move away: should register exit
+    const farPosition = { x: 0, y: 0 };
+    const third = processNpcTick({
+      npcStates: second.newNpcStates,
+      position: farPosition,
+      npcPausedMap: second.newNpcPausedMap,
+      npcNearMap: second.newNpcNearMap,
+      now: Date.now(),
+      npcPauseMs: 3000,
+    });
+
+    expect(third.exitedNpcIds).toContain('mage-guide');
+
+    // Re-enter: dialog should show again
+    const fourth = processNpcTick({
+      npcStates: third.newNpcStates,
+      position: playerPosition,
+      npcPausedMap: third.newNpcPausedMap,
+      npcNearMap: third.newNpcNearMap,
+      now: Date.now(),
+      npcPauseMs: 3000,
+    });
+
+    expect(fourth.dialogs.length).toBeGreaterThan(0);
   });
 });
-
-
-
-
-
-
-

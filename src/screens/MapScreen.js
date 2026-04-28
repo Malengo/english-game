@@ -17,6 +17,7 @@ import {
     resolveLocationEntryAction,
     resolveNpcPatrolStep,
     isPlayerNearNpc,
+    getAabbRect,
 } from "./mapScreen.logic";
 
 const victorianMapData = require("../../assets/lpc-victorian-preview-see-readme/lpc-victorian-preview/victorian-preview.json");
@@ -135,31 +136,25 @@ function resolveNpcPatrolPath(config) {
 
 // Exposed helper to run one NPC tick deterministically (useful for tests).
 // Returns { newNpcStates, newNpcPausedMap, dialogs }
-export function processNpcTick({ npcStates, position, npcPausedMap = {}, now = Date.now(), npcPauseMs = NPC_PAUSE_MS }) {
+export function processNpcTick({ npcStates, position, npcPausedMap = {}, npcNearMap = {}, now = Date.now(), npcPauseMs = NPC_PAUSE_MS }) {
     const newNpcPausedMap = { ...npcPausedMap };
+    const newNpcNearMap = { ...npcNearMap };
     const dialogs = [];
+    const exitedNpcIds = [];
+
+    const playerRect = getAabbRect(position, PLAYER_COLLISION_BOX);
+    const playerCenter = {
+        x: playerRect.x + playerRect.width / 2,
+        y: playerRect.y + playerRect.height / 2,
+    };
 
     const newNpcStates = npcStates.map((npcState) => {
         const config = npcConfigById[npcState.id];
         if (!config) return npcState;
 
-        const pausedUntil = newNpcPausedMap[npcState.id] ?? 0;
-        if (now < pausedUntil) {
-            return { ...npcState, isMoving: false };
-        }
-
-        const patrolPath = resolveNpcPatrolPath(config);
-        const hasPatrol = patrolPath.length > 1;
-
-        const step = resolveNpcPatrolStep({
-            position: { x: npcState.x, y: npcState.y },
-            patrolPath,
-            targetIndex: npcState.targetIndex,
-            speed: config.speedPxPerTick,
-            arriveDistance: config.arriveDistancePx,
-        });
-
+        const wasNear = Boolean(npcNearMap[npcState.id]);
         let near = false;
+
         try {
             near = isPlayerNearNpc({
                 playerPosition: position,
@@ -172,14 +167,44 @@ export function processNpcTick({ npcStates, position, npcPausedMap = {}, now = D
             near = false;
         }
 
-        if (near && (step.isMoving || npcState.isMoving) && hasPatrol) {
-            newNpcPausedMap[npcState.id] = now + npcPauseMs;
+        if (wasNear && !near) {
+            exitedNpcIds.push(npcState.id);
+        }
 
-            const anchorX = step.position.x + (config.hitbox?.width ?? 16) / 2;
-            const anchorY = step.position.y - 8;
-            const message = config.onNearbyMessage ?? "Oi! Espera um instante...";
+        newNpcNearMap[npcState.id] = near;
 
-            dialogs.push({ npcId: npcState.id, message, anchorX, anchorY, autoHideMs: npcPauseMs });
+        const patrolPath = resolveNpcPatrolPath(config);
+        const hasPatrol = patrolPath.length > 1;
+
+        const step = resolveNpcPatrolStep({
+            position: { x: npcState.x, y: npcState.y },
+            patrolPath,
+            targetIndex: npcState.targetIndex,
+            speed: config.speedPxPerTick,
+            arriveDistance: config.arriveDistancePx,
+        });
+
+        if (near) {
+            if (!wasNear && hasPatrol) {
+                const npcRect = getAabbRect({ x: npcState.x, y: npcState.y }, config.hitbox);
+                const npcCenter = {
+                    x: npcRect.x + npcRect.width / 2,
+                    y: npcRect.y + npcRect.height / 2,
+                };
+                const distance = Math.hypot(npcCenter.x - playerCenter.x, npcCenter.y - playerCenter.y);
+                const anchorX = step.position.x + (config.hitbox?.width ?? 16) / 2;
+                const anchorY = step.position.y - 8;
+                const message = config.onNearbyMessage ?? "Oi! Espera um instante...";
+
+                dialogs.push({ npcId: npcState.id, message, anchorX, anchorY, autoHideMs: 0, distance });
+            }
+
+            if (wasNear) {
+                return {
+                    ...npcState,
+                    isMoving: false,
+                };
+            }
 
             return {
                 ...npcState,
@@ -201,7 +226,20 @@ export function processNpcTick({ npcStates, position, npcPausedMap = {}, now = D
         };
     });
 
-    return { newNpcStates, newNpcPausedMap, dialogs };
+    let selectedDialogs = [];
+    if (dialogs.length > 0) {
+        const closest = dialogs.reduce((best, current) => {
+            if (!best) return current;
+            if (current.distance < best.distance) return current;
+            if (current.distance === best.distance) {
+                return String(current.npcId) < String(best.npcId) ? current : best;
+            }
+            return best;
+        }, null);
+        selectedDialogs = closest ? [closest] : [];
+    }
+
+    return { newNpcStates, newNpcPausedMap, newNpcNearMap, dialogs: selectedDialogs, exitedNpcIds };
 }
 
 export function buildInitialNpcState(config) {
@@ -265,6 +303,8 @@ export default function MapScreen({ navigation }) {
     const insideLocationsRef = useRef({});
     // Track paused until timestamp per NPC id (ms since epoch)
     const npcPausedRef = useRef({});
+    const npcNearRef = useRef({});
+    const npcDialogRef = useRef(npcDialog);
 
     const locationTriggers = useMemo(
         () =>
@@ -472,21 +512,31 @@ export default function MapScreen({ navigation }) {
     }, []);
 
     useEffect(() => {
+        npcDialogRef.current = npcDialog;
+    }, [npcDialog]);
+
+    useEffect(() => {
         if (!npcConfigs.length) return undefined;
 
         const intervalId = setInterval(() => {
             // Use the deterministic tick processor to compute next npc states and any dialogs
             setNpcStates((prevStates) => {
-                const { newNpcStates, newNpcPausedMap, dialogs } = processNpcTick({
+                const { newNpcStates, newNpcPausedMap, newNpcNearMap, dialogs, exitedNpcIds } = processNpcTick({
                     npcStates: prevStates,
                     position: positionRef.current,
                     npcPausedMap: npcPausedRef.current,
+                    npcNearMap: npcNearRef.current,
                     now: Date.now(),
                     npcPauseMs: NPC_PAUSE_MS,
                 });
 
                 // Apply paused map updates
                 npcPausedRef.current = { ...npcPausedRef.current, ...newNpcPausedMap };
+                npcNearRef.current = newNpcNearMap;
+
+                if (npcDialogRef.current?.npcId && exitedNpcIds.includes(npcDialogRef.current.npcId)) {
+                    hideNpcDialog();
+                }
 
                 // If any dialog requests were produced, show the first one (UI supports one at a time)
                 if (Array.isArray(dialogs) && dialogs.length > 0) {
@@ -503,7 +553,7 @@ export default function MapScreen({ navigation }) {
         }, NPC_TICK_MS);
 
         return () => clearInterval(intervalId);
-    }, [showNpcDialog]);
+    }, [showNpcDialog, hideNpcDialog]);
 
 
     const playerCenterX = position.x + PLAYER_HITBOX / 2;
@@ -839,7 +889,7 @@ export default function MapScreen({ navigation }) {
                 ctaLabel={npcDialog.ctaLabel}
                 onPressCta={npcDialog.onPressCta}
                 width={npcDialog.width}
-                onClose={hideNpcDialog}
+                onClose={undefined}
                 variant="npc"
                 avatarSource={npcConfigById[npcDialog.npcId]?.dialogAvatarSource ?? npcConfigById[npcDialog.npcId]?.sprite?.source}
                 avatarAlt={npcConfigById[npcDialog.npcId]?.name}
