@@ -1,6 +1,8 @@
 // src/data/locationConfig.js
 // Configuração de localizações no mapa
 
+import { schoolColorsLesson } from "./schoolColorsLesson";
+
 export const locations = [
   {
     id: "bakery",
@@ -28,6 +30,7 @@ export const locations = [
     isFirstLocation: true,
     autoStartOnEnter: true,
     tutorial: true,
+    lessonId: schoolColorsLesson.id,
     introMessages: [
       "Bem-vindo à Escola! Aqui você vai aprender as cores em ingles.",
       "Ande pelo mapa, entre em locais para iniciar missoes e ganhe moedas e XP.",

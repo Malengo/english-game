@@ -12,6 +12,8 @@ import {
   areAabbsOverlapping,
   isPlayerNearNpc,
   resolveNpcPatrolStep,
+  resolveActiveLessonMission,
+  buildLessonMissionCollectibles,
 } from "../mapScreen.logic";
 
 describe("mapScreen.logic", () => {
@@ -209,6 +211,38 @@ describe("mapScreen.logic", () => {
     expect(step.targetIndex).toBe(0);
     expect(step.direction).toBe("left");
     expect(step.isMoving).toBe(true);
+  });
+
+  it("resolve a missao ativa com base na ultima licao concluida", () => {
+    const lessonMissionCatalog = [
+      { lessonId: "lesson-a", missionId: "mission-a" },
+      { lessonId: "lesson-b", missionId: "mission-b" },
+    ];
+
+    expect(
+      resolveActiveLessonMission({
+        lessonCompletions: [{ lessonId: "lesson-a" }, { lessonId: "lesson-b" }],
+        completedLessonMissionIds: ["mission-a"],
+        lessonMissionCatalog,
+      })
+    ).toEqual({ lessonId: "lesson-b", missionId: "mission-b" });
+  });
+
+  it("monta os baloes da missao com base no ponto de ancoragem", () => {
+    const collectibles = buildLessonMissionCollectibles(
+      {
+        collectibles: [
+          { id: "balloon-1", offsetX: 10, offsetY: 20, label: "Balao red" },
+          { id: "balloon-2", offsetX: -5, offsetY: 15, label: "Balao red" },
+        ],
+      },
+      { x: 100, y: 200 }
+    );
+
+    expect(collectibles).toEqual([
+      expect.objectContaining({ id: "balloon-1", x: 110, y: 220, width: 40, height: 40 }),
+      expect.objectContaining({ id: "balloon-2", x: 95, y: 215, width: 40, height: 40 }),
+    ]);
   });
 });
 

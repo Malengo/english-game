@@ -1,4 +1,5 @@
 import { locations, getLocationById, getLocationsByStage } from "../locationConfig";
+import { schoolColorsLesson } from "../schoolColorsLesson";
 
 describe("locationConfig", () => {
   it("expoe lista de localizacoes com escola configurada", () => {
@@ -13,6 +14,7 @@ describe("locationConfig", () => {
     expect(school).toBeTruthy();
     expect(school.name).toBe("Escola");
     expect(school.stageRequired).toBe(1);
+    expect(school.lessonId).toBe(schoolColorsLesson.id);
   });
 
   it("retorna undefined para id inexistente", () => {

@@ -9,8 +9,9 @@ jest.mock('../../data/locationConfig', () => ({
 jest.mock('../../utils/progressStorage', () => ({
   loadProgress: () => Promise.resolve({ completedLocationIds: [] }),
   markSchoolVisited: () => Promise.resolve(),
-  hasVisitedSchoolToday: () => Promise.resolve(true),
-  ensureDailyMissions: () => Promise.resolve([]),
+  markLessonMissionCompleted: () => Promise.resolve(),
+  getLatestLessonCompletion: () => null,
+  hasCompletedLessonMission: () => false,
 }));
 
 // Provide a controlled npcConfigs so the NPC spawns at the player's initial spawn

@@ -13,8 +13,9 @@ jest.mock("../../data/locationConfig", () => ({
 jest.mock("../../utils/progressStorage", () => ({
   loadProgress: (...args) => mockLoadProgress(...args),
   markSchoolVisited: () => Promise.resolve(),
-  hasVisitedSchoolToday: () => Promise.resolve(true),
-  ensureDailyMissions: () => Promise.resolve([]),
+  markLessonMissionCompleted: () => Promise.resolve(),
+  getLatestLessonCompletion: () => null,
+  hasCompletedLessonMission: () => false,
 }));
 
 jest.mock("../../data/npcConfig", () => ({

@@ -4,11 +4,18 @@ import { View, Image, useWindowDimensions, Text, Modal, TouchableOpacity } from 
 import { useFocusEffect } from "@react-navigation/native";
 import { locations } from "../data/locationConfig";
 import { npcConfigs } from "../data/npcConfig";
+import { lessonMissionCatalog, buildLessonMissionCollectibles, getLessonMissionByLessonId } from "../data/lessonMissionCatalog";
 import Player from "../components/Player";
 import Npc from "../components/Npc";
 import FloatingJoystick from "../components/FloatingJoystick";
 import PlayerDialog from "../components/PlayerDialog";
-import { loadProgress, markSchoolVisited, hasVisitedSchoolToday, ensureDailyMissions } from "../utils/progressStorage";
+import {
+    loadProgress,
+    markSchoolVisited,
+    markLessonMissionCompleted,
+    getLatestLessonCompletion,
+    hasCompletedLessonMission,
+} from "../utils/progressStorage";
 import {
     clamp,
     resolveMovementStep,
@@ -18,6 +25,7 @@ import {
     resolveNpcPatrolStep,
     isPlayerNearNpc,
     getAabbRect,
+    resolveActiveLessonMission,
 } from "./mapScreen.logic";
 
 const victorianMapData = require("../../assets/lpc-victorian-preview-see-readme/lpc-victorian-preview/victorian-preview.json");
@@ -53,7 +61,6 @@ const collisionShapes = collisionLayers
                 points: obj.polygon.map((point) => ({ x: obj.x + point.x, y: obj.y + point.y })),
             };
         }
-
         if (obj.width > 0 && obj.height > 0) {
             return {
                 type: "rect",
@@ -293,12 +300,16 @@ export default function MapScreen({ navigation }) {
     const [activeLocationId, setActiveLocationId] = useState(null);
     const [blockedLocationId, setBlockedLocationId] = useState(null);
     const [completedLocationIds, setCompletedLocationIds] = useState([]);
+    const [lessonCompletions, setLessonCompletions] = useState([]);
+    const [completedLessonMissionIds, setCompletedLessonMissionIds] = useState([]);
     const [playerDialog, setPlayerDialog] = useState({ visible: false, message: "" });
     const [npcDialog, setNpcDialog] = useState({ visible: false, message: "" });
     const [npcStates, setNpcStates] = useState(() => npcConfigs.map(buildInitialNpcState));
     const [objectiveOverrideId, setObjectiveOverrideId] = useState(null);
+    const [collectedMissionItemIds, setCollectedMissionItemIds] = useState([]);
     const dialogTimeoutRef = useRef(null);
     const npcDialogTimeoutRef = useRef(null);
+    const missionCompletionLockRef = useRef(false);
     const insideLocationsRef = useRef({});
     // Track paused until timestamp per NPC id (ms since epoch)
     const npcPausedRef = useRef({});
@@ -352,6 +363,8 @@ export default function MapScreen({ navigation }) {
     const refreshProgress = useCallback(async () => {
         const progress = await loadProgress();
         setCompletedLocationIds(progress.completedLocationIds ?? []);
+        setLessonCompletions(progress.lessonCompletions ?? []);
+        setCompletedLessonMissionIds(progress.completedLessonMissionIds ?? []);
     }, []);
 
     useFocusEffect(
@@ -436,6 +449,7 @@ export default function MapScreen({ navigation }) {
             navigation.navigate(activeLocation.screenRoute, {
                 autoStart: true,
                 locationId: activeLocation.id,
+                lessonId: activeLocation.lessonId,
             });
         }
     }, [activeLocation, navigation]);
@@ -478,6 +492,67 @@ export default function MapScreen({ navigation }) {
     useEffect(() => {
         positionRef.current = position;
     }, [position]);
+
+    const activeLessonMission = useMemo(
+        () =>
+            resolveActiveLessonMission({
+                lessonCompletions,
+                completedLessonMissionIds,
+                lessonMissionCatalog,
+            }),
+        [lessonCompletions, completedLessonMissionIds]
+    );
+
+    const activeLessonMissionCollectibles = useMemo(
+        () => buildLessonMissionCollectibles(activeLessonMission, INITIAL_POSITION),
+        [activeLessonMission]
+    );
+
+    const remainingLessonMissionCollectibles = useMemo(
+        () =>
+            activeLessonMissionCollectibles.filter(
+                (collectible) => !collectedMissionItemIds.includes(collectible.id)
+            ),
+        [activeLessonMissionCollectibles, collectedMissionItemIds]
+    );
+
+    const latestCompletedLesson = useMemo(
+        () => getLatestLessonCompletion({ lessonCompletions }),
+        [lessonCompletions]
+    );
+
+    const latestCompletedLessonMission = useMemo(
+        () => (latestCompletedLesson ? getLessonMissionByLessonId(latestCompletedLesson.lessonId) ?? null : null),
+        [latestCompletedLesson]
+    );
+
+    const hasFinishedLatestLessonMission = useMemo(
+        () => hasCompletedLessonMission({ completedLessonMissionIds }, latestCompletedLessonMission?.missionId),
+        [completedLessonMissionIds, latestCompletedLessonMission]
+    );
+
+    useEffect(() => {
+        setCollectedMissionItemIds([]);
+    }, [activeLessonMission?.missionId]);
+
+    const finishActiveLessonMission = useCallback(
+        async (mission) => {
+            if (!mission || missionCompletionLockRef.current) return;
+
+            missionCompletionLockRef.current = true;
+
+            try {
+                await markLessonMissionCompleted(mission.missionId);
+                setCompletedLessonMissionIds((prev) => Array.from(new Set([...prev, mission.missionId])));
+                setCollectedMissionItemIds([]);
+                setObjectiveOverrideId(null);
+                showPlayerDialog(mission.completionMessage, { autoHideMs: 6000 });
+            } finally {
+                missionCompletionLockRef.current = false;
+            }
+        },
+        [showPlayerDialog]
+    );
 
     // Loop unico de movimento para evitar recriar intervalos a cada frame do joystick
     useEffect(() => {
@@ -540,14 +615,12 @@ export default function MapScreen({ navigation }) {
                     const d = dialogs[0];
 
                     if (d.npcId === "mage-guide") {
-                        // Mage-SWEN controla o fluxo diario: escola primeiro, depois missoes diarias
+                        // O mage-guia decide a missao com base na ultima licao concluida.
                         void (async () => {
                             try {
-                                const visited = await hasVisitedSchoolToday();
-
-                                if (!visited) {
+                                if (!latestCompletedLesson) {
                                     showNpcDialog(
-                                        "Voce ainda nao foi na Escola hoje. Va ate la para liberar as missoes diarias.",
+                                        "Antes de seguir para missoes no mapa, conclua uma licao na Escola.",
                                         {
                                             anchorX: d.anchorX,
                                             anchorY: d.anchorY,
@@ -559,18 +632,32 @@ export default function MapScreen({ navigation }) {
                                     return;
                                 }
 
-                                const missions = await ensureDailyMissions();
-                                const missionTitles = (missions ?? []).map((mission) => mission.title).join(" • ");
-
-                                showNpcDialog(
-                                    `Missoes diarias criadas: ${missionTitles}`,
-                                    {
+                                if (activeLessonMission) {
+                                    showNpcDialog(activeLessonMission.guideMessage, {
                                         anchorX: d.anchorX,
                                         anchorY: d.anchorY,
                                         npcId: d.npcId,
                                         autoHideMs: 8000,
-                                    }
-                                );
+                                    });
+                                    return;
+                                }
+
+                                if (latestCompletedLessonMission && hasFinishedLatestLessonMission) {
+                                    showNpcDialog(latestCompletedLessonMission.completionMessage, {
+                                        anchorX: d.anchorX,
+                                        anchorY: d.anchorY,
+                                        npcId: d.npcId,
+                                        autoHideMs: 8000,
+                                    });
+                                    return;
+                                }
+
+                                showNpcDialog("Você já concluiu a missão desta lição. Volte à Escola para aprender algo novo.", {
+                                    anchorX: d.anchorX,
+                                    anchorY: d.anchorY,
+                                    npcId: d.npcId,
+                                    autoHideMs: 8000,
+                                });
                             } catch (_error) {
                                 try {
                                     showNpcDialog(d.message, {
@@ -604,7 +691,14 @@ export default function MapScreen({ navigation }) {
         }, NPC_TICK_MS);
 
         return () => clearInterval(intervalId);
-    }, [showNpcDialog, hideNpcDialog]);
+    }, [
+        showNpcDialog,
+        hideNpcDialog,
+        activeLessonMission,
+        latestCompletedLesson,
+        latestCompletedLessonMission,
+        hasFinishedLatestLessonMission,
+    ]);
 
 
     const playerCenterX = position.x + PLAYER_HITBOX / 2;
@@ -659,6 +753,47 @@ export default function MapScreen({ navigation }) {
         playerHeadY
     );
 
+    useEffect(() => {
+        if (!activeLessonMission || !activeLessonMissionCollectibles.length) return;
+
+        const playerRect = getAabbRect(position, PLAYER_COLLISION_BOX);
+        let nextCollectedIds = collectedMissionItemIds;
+        let collectedSomething = false;
+
+        for (const collectible of activeLessonMissionCollectibles) {
+            if (nextCollectedIds.includes(collectible.id)) continue;
+
+            const overlaps =
+                playerRect.x < collectible.x + collectible.width &&
+                playerRect.x + playerRect.width > collectible.x &&
+                playerRect.y < collectible.y + collectible.height &&
+                playerRect.y + playerRect.height > collectible.y;
+
+            if (overlaps) {
+                nextCollectedIds = [...nextCollectedIds, collectible.id];
+                collectedSomething = true;
+            }
+        }
+
+        if (collectedSomething) {
+            setCollectedMissionItemIds(nextCollectedIds);
+        }
+
+        const allCollected = activeLessonMissionCollectibles.every((collectible) =>
+            nextCollectedIds.includes(collectible.id)
+        );
+
+        if (allCollected && !missionCompletionLockRef.current) {
+            void finishActiveLessonMission(activeLessonMission);
+        }
+    }, [
+        position,
+        activeLessonMission,
+        activeLessonMissionCollectibles,
+        collectedMissionItemIds,
+        finishActiveLessonMission,
+    ]);
+
     // Detecta entrada nas areas de localizacao e abre modal quando permitido
     useEffect(() => {
         if (!locationTriggers.length) return;
@@ -701,14 +836,23 @@ export default function MapScreen({ navigation }) {
     }, [position, locationTriggers, activeLocationId, blockedLocationId, currentStage, playerCenterX, playerCenterY]);
 
     const directionHud = useMemo(() => {
-        if (!objectiveLocation) return null;
+        const missionTarget = remainingLessonMissionCollectibles[0] ?? null;
+        const target = missionTarget
+            ? {
+                  name: activeLessonMission?.title ?? "Missão da lição",
+                  center: { x: missionTarget.x + missionTarget.width / 2, y: missionTarget.y + missionTarget.height / 2 },
+                  triggerRect: { width: missionTarget.width, height: missionTarget.height },
+              }
+            : objectiveLocation;
 
-        const dx = objectiveLocation.center.x - playerCenterX;
-        const dy = objectiveLocation.center.y - playerCenterY;
+        if (!target) return null;
+
+        const dx = target.center.x - playerCenterX;
+        const dy = target.center.y - playerCenterY;
         const dist = Math.hypot(dx, dy);
         const angle = Math.atan2(dy, dx);
-        const nearThreshold = objectiveLocation.triggerRect
-            ? Math.max(objectiveLocation.triggerRect.width, objectiveLocation.triggerRect.height) / 2
+        const nearThreshold = target.triggerRect
+            ? Math.max(target.triggerRect.width, target.triggerRect.height) / 2
             : 56;
         const isNear = dist < nearThreshold + 16;
 
@@ -728,7 +872,7 @@ export default function MapScreen({ navigation }) {
             >
                 <Text
                     style={{ fontSize: 36, transform: [{ rotate: `${angle}rad` }], color: "#FF7043" }}
-                    accessibilityLabel={`Direcao para ${objectiveLocation.name}`}
+                    accessibilityLabel={`Direcao para ${target.name}`}
                 >
                     ➤
                 </Text>
@@ -742,11 +886,11 @@ export default function MapScreen({ navigation }) {
                         borderRadius: 8,
                     }}
                 >
-                    <Text style={{ color: "white", fontSize: 12 }}>{objectiveLocation.name}</Text>
+                    <Text style={{ color: "white", fontSize: 12 }}>{target.name}</Text>
                 </View>
             </View>
         );
-    }, [objectiveLocation, playerCenterX, playerCenterY]);
+    }, [objectiveLocation, activeLessonMission, remainingLessonMissionCollectibles, playerCenterX, playerCenterY]);
 
     const isNearAnyNpc = useMemo(() => {
         return npcStates.some((npcState) => {
@@ -915,6 +1059,38 @@ export default function MapScreen({ navigation }) {
                     );
                 })}
 
+                {activeLessonMissionCollectibles.map((collectible) => {
+                    if (collectedMissionItemIds.includes(collectible.id)) return null;
+
+                    return (
+                        <View
+                            key={collectible.id}
+                            accessibilityRole="image"
+                            accessibilityLabel={collectible.label}
+                            style={{
+                                position: "absolute",
+                                left: collectible.x,
+                                top: collectible.y,
+                                width: collectible.width,
+                                height: collectible.height,
+                                borderRadius: 18,
+                                backgroundColor: collectible.color,
+                                borderWidth: 2,
+                                borderColor: "white",
+                                justifyContent: "center",
+                                alignItems: "center",
+                                shadowColor: "#000",
+                                shadowOpacity: 0.18,
+                                shadowRadius: 4,
+                                shadowOffset: { width: 0, height: 2 },
+                                elevation: 3,
+                            }}
+                        >
+                            <Text style={{ fontSize: 18 }}>{collectible.emoji}</Text>
+                        </View>
+                    );
+                })}
+
 
                 {/* Player com sprite e animação */}
                 <Player
@@ -928,6 +1104,27 @@ export default function MapScreen({ navigation }) {
 
                 {/* debug marker removed */}
             </View>
+
+            {activeLessonMission && (
+                <View
+                    style={{
+                        position: "absolute",
+                        top: 14,
+                        alignSelf: "center",
+                        backgroundColor: "rgba(255,255,255,0.95)",
+                        borderRadius: 999,
+                        paddingHorizontal: 14,
+                        paddingVertical: 8,
+                        borderWidth: 2,
+                        borderColor: "#E53935",
+                    }}
+                >
+                    <Text style={{ color: "#B71C1C", fontWeight: "bold", fontSize: 13 }}>
+                        {activeLessonMission.title}: {remainingLessonMissionCollectibles.length}/
+                        {activeLessonMissionCollectibles.length}
+                    </Text>
+                </View>
+            )}
 
             <PlayerDialog
                 visible={playerDialog.visible}

@@ -4,6 +4,8 @@ const PROGRESS_STORAGE_KEY = "@english-game:progress:v1";
 
 const DEFAULT_PROGRESS = {
   completedLocationIds: [],
+  lessonCompletions: [],
+  completedLessonMissionIds: [],
 };
 
 function normalizeProgress(rawProgress) {
@@ -15,7 +17,33 @@ function normalizeProgress(rawProgress) {
     ? rawProgress.completedLocationIds.filter((value) => typeof value === "string")
     : [];
 
-  const result = { completedLocationIds };
+  const lessonCompletions = Array.isArray(rawProgress.lessonCompletions)
+    ? rawProgress.lessonCompletions
+        .filter((entry) => entry && typeof entry.lessonId === "string")
+        .map((entry) => {
+          const normalized = { lessonId: entry.lessonId };
+
+          if (typeof entry.locationId === "string") {
+            normalized.locationId = entry.locationId;
+          }
+
+          if (typeof entry.completedAt === "string") {
+            normalized.completedAt = entry.completedAt;
+          }
+
+          return normalized;
+        })
+    : [];
+
+  const completedLessonMissionIds = Array.isArray(rawProgress.completedLessonMissionIds)
+    ? rawProgress.completedLessonMissionIds.filter((value) => typeof value === "string")
+    : [];
+
+  const result = {
+    completedLocationIds,
+    lessonCompletions,
+    completedLessonMissionIds,
+  };
 
   if (typeof rawProgress.lastSchoolVisit === "string") {
     result.lastSchoolVisit = rawProgress.lastSchoolVisit;
@@ -59,7 +87,10 @@ export async function markLocationCompleted(locationId) {
   const nextCompleted = new Set(progress.completedLocationIds);
   nextCompleted.add(locationId);
 
-  return saveProgress({ completedLocationIds: Array.from(nextCompleted) });
+  return saveProgress({
+    ...progress,
+    completedLocationIds: Array.from(nextCompleted),
+  });
 }
 
 export async function markSchoolVisited(timestamp = Date.now()) {
@@ -113,3 +144,59 @@ export async function ensureDailyMissions() {
   await saveProgress(next);
   return missions;
 }
+
+export async function markLessonCompleted({ lessonId, locationId = undefined, completedAt = Date.now() }) {
+  if (typeof lessonId !== "string" || !lessonId.trim()) {
+    return loadProgress();
+  }
+
+  const progress = await loadProgress();
+  const alreadyCompleted = progress.lessonCompletions.some((entry) => entry.lessonId === lessonId);
+
+  if (alreadyCompleted) {
+    return progress;
+  }
+
+  const next = {
+    ...progress,
+    lessonCompletions: [
+      ...progress.lessonCompletions,
+      {
+        lessonId,
+        ...(typeof locationId === "string" ? { locationId } : {}),
+        completedAt: new Date(completedAt).toISOString(),
+      },
+    ],
+  };
+
+  return saveProgress(next);
+}
+
+export async function markLessonMissionCompleted(missionId) {
+  if (typeof missionId !== "string" || !missionId.trim()) {
+    return loadProgress();
+  }
+
+  const progress = await loadProgress();
+  const nextCompleted = new Set(progress.completedLessonMissionIds);
+  nextCompleted.add(missionId);
+
+  return saveProgress({
+    ...progress,
+    completedLessonMissionIds: Array.from(nextCompleted),
+  });
+}
+
+export function getLatestLessonCompletion(progress) {
+  const lessonCompletions = Array.isArray(progress?.lessonCompletions) ? progress.lessonCompletions : [];
+  return lessonCompletions.length > 0 ? lessonCompletions[lessonCompletions.length - 1] : null;
+}
+
+export function hasCompletedLessonMission(progress, missionId) {
+  if (typeof missionId !== "string" || !missionId.trim()) return false;
+
+  return Array.isArray(progress?.completedLessonMissionIds)
+    ? progress.completedLessonMissionIds.includes(missionId)
+    : false;
+}
+

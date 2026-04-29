@@ -1,10 +1,11 @@
 import React, { useState } from "react";
 import { View, Text, TouchableOpacity, ScrollView } from "react-native";
-import { markLocationCompleted, markSchoolVisited } from "../utils/progressStorage";
+import { markLocationCompleted, markSchoolVisited, markLessonCompleted } from "../utils/progressStorage";
 import { schoolColorsLesson } from "../data/schoolColorsLesson";
 
 export default function SchoolMissionScreen({ navigation, route }) {
   const autoStart = route?.params?.autoStart;
+  const lessonId = route?.params?.lessonId ?? schoolColorsLesson.id;
   const [questionIndex, setQuestionIndex] = useState(0);
   const [selectedOptionIndex, setSelectedOptionIndex] = useState(null);
   const [isAnswerCorrect, setIsAnswerCorrect] = useState(false);
@@ -51,6 +52,7 @@ export default function SchoolMissionScreen({ navigation, route }) {
 
     try {
       await markLocationCompleted("school");
+      await markLessonCompleted({ lessonId, locationId: "school" });
       await markSchoolVisited();
       navigation.goBack();
     } catch (_error) {

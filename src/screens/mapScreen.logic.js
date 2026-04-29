@@ -301,3 +301,40 @@ export function resolveNpcPatrolStep({
   };
 }
 
+export function resolveActiveLessonMission({ lessonCompletions, completedLessonMissionIds, lessonMissionCatalog }) {
+  const completions = Array.isArray(lessonCompletions) ? lessonCompletions : [];
+  const completedMissionIds = new Set(Array.isArray(completedLessonMissionIds) ? completedLessonMissionIds : []);
+  const catalog = Array.isArray(lessonMissionCatalog) ? lessonMissionCatalog : [];
+
+  for (let index = completions.length - 1; index >= 0; index -= 1) {
+    const completion = completions[index];
+    const mission = catalog.find((entry) => entry.lessonId === completion?.lessonId);
+
+    if (mission && !completedMissionIds.has(mission.missionId)) {
+      return mission;
+    }
+  }
+
+  return null;
+}
+
+export function buildLessonMissionCollectibles(mission, anchorPosition) {
+  if (!mission) return [];
+
+  const origin = {
+    x: Number.isFinite(anchorPosition?.x) ? anchorPosition.x : 0,
+    y: Number.isFinite(anchorPosition?.y) ? anchorPosition.y : 0,
+  };
+
+  return (mission.collectibles ?? []).map((collectible, index) => ({
+    ...collectible,
+    x: origin.x + (collectible.offsetX ?? 0),
+    y: origin.y + (collectible.offsetY ?? 0),
+    width: collectible.width ?? 40,
+    height: collectible.height ?? 40,
+    order: index,
+  }));
+}
+
+void buildLessonMissionCollectibles;
+

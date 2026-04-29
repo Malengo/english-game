@@ -1,17 +1,20 @@
 import React from "react";
 import { render, fireEvent, waitFor } from "@testing-library/react-native";
 import SchoolMissionScreen from "../SchoolMissionScreen";
-import { markLocationCompleted, markSchoolVisited } from "../../utils/progressStorage";
+import { markLocationCompleted, markSchoolVisited, markLessonCompleted } from "../../utils/progressStorage";
+import { schoolColorsLesson } from "../../data/schoolColorsLesson";
 
 jest.mock("../../utils/progressStorage", () => ({
   markLocationCompleted: jest.fn(),
   markSchoolVisited: jest.fn(),
+  markLessonCompleted: jest.fn(),
 }));
 
 describe("SchoolMissionScreen", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     markLocationCompleted.mockResolvedValue({ completedLocationIds: ["school"] });
+    markLessonCompleted.mockResolvedValue({ lessonCompletions: [{ lessonId: schoolColorsLesson.id, locationId: "school" }] });
     markSchoolVisited.mockResolvedValue({ completedLocationIds: ["school"], lastSchoolVisit: "2026-04-28T00:00:00.000Z" });
   });
 
@@ -65,6 +68,7 @@ describe("SchoolMissionScreen", () => {
 
     await waitFor(() => {
       expect(markLocationCompleted).toHaveBeenCalledWith("school");
+      expect(markLessonCompleted).toHaveBeenCalledWith({ lessonId: schoolColorsLesson.id, locationId: "school" });
       expect(markSchoolVisited).toHaveBeenCalledTimes(1);
       expect(navigation.goBack).toHaveBeenCalledTimes(1);
     });
