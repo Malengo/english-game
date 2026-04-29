@@ -23,7 +23,6 @@
       "package": "com.malengo.englishgame"
     },
     "web": {
-      "output": "static",
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
@@ -41,11 +40,9 @@
       ]
     ],
     "experiments": {
-      "typedRoutes": true,
       "reactCompiler": true
     },
     "extra": {
-      "router": {},
       "eas": {
         "projectId": "33dfa2c8-ec28-40d0-8458-fff3ca32d13b"
       }
