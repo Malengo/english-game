@@ -23,10 +23,11 @@ describe("SchoolMissionScreen", () => {
     return { ...utils, navigation };
   }
 
-  it("mostra texto de tutorial quando autoStart for true", () => {
+  it("mostra o tutorial de cores quando autoStart for true", () => {
     const { getByText } = renderScreen({ autoStart: true });
 
-    expect(getByText(/Tutorial iniciado!/i)).toBeTruthy();
+    expect(getByText(/Vamos aprender as cores em ingles/i)).toBeTruthy();
+    expect(getByText("Qual cor é a apple?")).toBeTruthy();
   });
 
   it("mostra texto padrao quando autoStart nao for informado", () => {
@@ -35,10 +36,32 @@ describe("SchoolMissionScreen", () => {
     expect(getByText("Bem-vindo a Escola!")).toBeTruthy();
   });
 
-  it("conclui missao e volta ao mapa", async () => {
-    const { getByText, navigation } = renderScreen({ autoStart: true });
+  it("mostra feedback quando a resposta esta errada e permite tentar de novo", () => {
+    const { getByText, getByLabelText, queryByText } = renderScreen({ autoStart: true });
 
-    fireEvent.press(getByText("Concluir e voltar"));
+    fireEvent.press(getByLabelText("Resposta Blue"));
+
+    expect(getByText("Quase! Tente outra vez.")).toBeTruthy();
+    expect(queryByText("Próxima pergunta")).toBeNull();
+    expect(markLocationCompleted).not.toHaveBeenCalled();
+    expect(markSchoolVisited).not.toHaveBeenCalled();
+  });
+
+  it("avanca por todas as perguntas e conclui a lição", async () => {
+    const { getByLabelText, getByText, navigation } = renderScreen({ autoStart: true });
+
+    fireEvent.press(getByLabelText("Resposta Red"));
+    fireEvent.press(getByText("Próxima pergunta"));
+
+    expect(getByText("Qual cor é o sky?")).toBeTruthy();
+
+    fireEvent.press(getByLabelText("Resposta Blue"));
+    fireEvent.press(getByText("Próxima pergunta"));
+
+    expect(getByText("Qual cor é a banana?")).toBeTruthy();
+
+    fireEvent.press(getByLabelText("Resposta Yellow"));
+    fireEvent.press(getByText("Concluir lição"));
 
     await waitFor(() => {
       expect(markLocationCompleted).toHaveBeenCalledWith("school");

@@ -29,12 +29,12 @@ export const locations = [
     autoStartOnEnter: true,
     tutorial: true,
     introMessages: [
-      "Bem-vindo à Escola! Aqui você aprenderá o alfabeto e como o jogo funciona.",
-      "Ande pelo mapa, entre em locais para iniciar missões e ganhe moedas e XP.",
-      "Complete exercícios para desbloquear novas áreas.",
-      "Toque em Continuar para começar o tutorial do alfabeto.",
+      "Bem-vindo à Escola! Aqui você vai aprender as cores em ingles.",
+      "Ande pelo mapa, entre em locais para iniciar missoes e ganhe moedas e XP.",
+      "Complete exercicios para desbloquear novas areas.",
+      "Toque em Continuar para começar a primeira licao de cores.",
     ],
-    description: "Tipos de exercícios e desafios",
+    description: "Primeira licao: cores em ingles",
   },
   {
     id: "house",
