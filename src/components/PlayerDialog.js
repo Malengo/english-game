@@ -30,7 +30,7 @@ export default function PlayerDialog({
     const left = Math.max(safeMargin, Math.min(anchorX - width / 2, viewportWidth - width - safeMargin));
 
     // Simple vertical clamp so dialog stays on screen
-    const estimatedDialogHeight = 120; // heuristic, adjust if you change styling
+    const estimatedDialogHeight = 100; // heuristic, adjust if you change styling
     const topUnclamped = anchorY - DIALOG_OFFSET_Y;
     const top = Math.max(safeMargin, Math.min(topUnclamped, viewportHeight - estimatedDialogHeight - safeMargin));
 

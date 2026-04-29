@@ -307,6 +307,7 @@ export default function MapScreen({ navigation }) {
     const [npcStates, setNpcStates] = useState(() => npcConfigs.map(buildInitialNpcState));
     const [objectiveOverrideId, setObjectiveOverrideId] = useState(null);
     const [collectedMissionItemIds, setCollectedMissionItemIds] = useState([]);
+    const [unlockedLessonMissionId, setUnlockedLessonMissionId] = useState(null);
     const dialogTimeoutRef = useRef(null);
     const npcDialogTimeoutRef = useRef(null);
     const missionCompletionLockRef = useRef(false);
@@ -503,9 +504,14 @@ export default function MapScreen({ navigation }) {
         [lessonCompletions, completedLessonMissionIds]
     );
 
+    const unlockedLessonMission = useMemo(() => {
+        if (!activeLessonMission || !unlockedLessonMissionId) return null;
+        return activeLessonMission.missionId === unlockedLessonMissionId ? activeLessonMission : null;
+    }, [activeLessonMission, unlockedLessonMissionId]);
+
     const activeLessonMissionCollectibles = useMemo(
-        () => buildLessonMissionCollectibles(activeLessonMission, INITIAL_POSITION),
-        [activeLessonMission]
+        () => buildLessonMissionCollectibles(unlockedLessonMission, INITIAL_POSITION),
+        [unlockedLessonMission]
     );
 
     const remainingLessonMissionCollectibles = useMemo(
@@ -533,6 +539,7 @@ export default function MapScreen({ navigation }) {
 
     useEffect(() => {
         setCollectedMissionItemIds([]);
+        setUnlockedLessonMissionId(null);
     }, [activeLessonMission?.missionId]);
 
     const finishActiveLessonMission = useCallback(
@@ -546,6 +553,7 @@ export default function MapScreen({ navigation }) {
                 setCompletedLessonMissionIds((prev) => Array.from(new Set([...prev, mission.missionId])));
                 setCollectedMissionItemIds([]);
                 setObjectiveOverrideId(null);
+                setUnlockedLessonMissionId(null);
                 showPlayerDialog(mission.completionMessage, { autoHideMs: 6000 });
             } finally {
                 missionCompletionLockRef.current = false;
@@ -639,6 +647,7 @@ export default function MapScreen({ navigation }) {
                                         npcId: d.npcId,
                                         autoHideMs: 8000,
                                     });
+                                    setUnlockedLessonMissionId(activeLessonMission.missionId);
                                     return;
                                 }
 
@@ -700,7 +709,6 @@ export default function MapScreen({ navigation }) {
         hasFinishedLatestLessonMission,
     ]);
 
-
     const playerCenterX = position.x + PLAYER_HITBOX / 2;
     const playerCenterY = position.y + PLAYER_HITBOX / 2;
     const playerHeadX = playerCenterX;
@@ -754,7 +762,7 @@ export default function MapScreen({ navigation }) {
     );
 
     useEffect(() => {
-        if (!activeLessonMission || !activeLessonMissionCollectibles.length) return;
+        if (!unlockedLessonMission || !activeLessonMissionCollectibles.length) return;
 
         const playerRect = getAabbRect(position, PLAYER_COLLISION_BOX);
         let nextCollectedIds = collectedMissionItemIds;
@@ -784,11 +792,11 @@ export default function MapScreen({ navigation }) {
         );
 
         if (allCollected && !missionCompletionLockRef.current) {
-            void finishActiveLessonMission(activeLessonMission);
+            void finishActiveLessonMission(unlockedLessonMission);
         }
     }, [
         position,
-        activeLessonMission,
+        unlockedLessonMission,
         activeLessonMissionCollectibles,
         collectedMissionItemIds,
         finishActiveLessonMission,
@@ -839,7 +847,7 @@ export default function MapScreen({ navigation }) {
         const missionTarget = remainingLessonMissionCollectibles[0] ?? null;
         const target = missionTarget
             ? {
-                  name: activeLessonMission?.title ?? "Missão da lição",
+                  name: unlockedLessonMission?.title ?? "Missão da lição",
                   center: { x: missionTarget.x + missionTarget.width / 2, y: missionTarget.y + missionTarget.height / 2 },
                   triggerRect: { width: missionTarget.width, height: missionTarget.height },
               }
@@ -890,7 +898,7 @@ export default function MapScreen({ navigation }) {
                 </View>
             </View>
         );
-    }, [objectiveLocation, activeLessonMission, remainingLessonMissionCollectibles, playerCenterX, playerCenterY]);
+    }, [objectiveLocation, unlockedLessonMission, remainingLessonMissionCollectibles, playerCenterX, playerCenterY]);
 
     const isNearAnyNpc = useMemo(() => {
         return npcStates.some((npcState) => {
@@ -1075,8 +1083,6 @@ export default function MapScreen({ navigation }) {
                                 height: collectible.height,
                                 borderRadius: 18,
                                 backgroundColor: collectible.color,
-                                borderWidth: 2,
-                                borderColor: "white",
                                 justifyContent: "center",
                                 alignItems: "center",
                                 shadowColor: "#000",
@@ -1105,7 +1111,7 @@ export default function MapScreen({ navigation }) {
                 {/* debug marker removed */}
             </View>
 
-            {activeLessonMission && (
+            {unlockedLessonMission && (
                 <View
                     style={{
                         position: "absolute",
@@ -1120,7 +1126,7 @@ export default function MapScreen({ navigation }) {
                     }}
                 >
                     <Text style={{ color: "#B71C1C", fontWeight: "bold", fontSize: 13 }}>
-                        {activeLessonMission.title}: {remainingLessonMissionCollectibles.length}/
+                        {unlockedLessonMission.title}: {remainingLessonMissionCollectibles.length}/
                         {activeLessonMissionCollectibles.length}
                     </Text>
                 </View>
