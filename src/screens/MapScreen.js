@@ -1,6 +1,7 @@
 // src/screens/MapScreen.js
 import React, { useState, useEffect, useMemo, useRef, useCallback } from "react";
-import { View, Image, useWindowDimensions, Text, Modal, TouchableOpacity } from "react-native";
+import {View, Image, useWindowDimensions, Text, Modal, TouchableOpacity} from "react-native";
+import {SafeAreaView} from 'react-native-safe-area-context/src';
 import { useFocusEffect } from "@react-navigation/native";
 import { locations } from "../data/locationConfig";
 import { npcConfigs } from "../data/npcConfig";
@@ -9,7 +10,7 @@ import Player from "../components/Player";
 import Npc from "../components/Npc";
 import FloatingJoystick from "../components/FloatingJoystick";
 import PlayerDialog from "../components/PlayerDialog";
-import ColoredBalloon from "../components/ColoredBalloon";
+import Collectible from "../components/Collectible";
 import {
     loadProgress,
     markSchoolVisited,
@@ -56,6 +57,7 @@ const collisionLayers = victorianMapData.layers.filter((layer) => {
     const layerName = layer.name?.toLowerCase() ?? "";
     return layer.type === "objectgroup" && layerName.includes("collision");
 });
+
 
 const collisionShapes = collisionLayers
     .flatMap((layer) => layer.objects ?? [])
@@ -965,10 +967,11 @@ export default function MapScreen({ navigation }) {
                     position: "absolute",
                     right: 18,
                     bottom: 90,
-                    width: 56,
+                    width: 90,
                     height: 56,
                     justifyContent: "center",
                     alignItems: "center",
+                    maxWidth: 120
                 }}
             >
                 <Text
@@ -987,7 +990,13 @@ export default function MapScreen({ navigation }) {
                         borderRadius: 8,
                     }}
                 >
-                    <Text style={{ color: "white", fontSize: 12 }}>{target.name}</Text>
+                    <Text
+                        style={{ color: "white", fontSize: 12 }}
+                        numberOfLines={1}
+                        ellipsizeMode="tail"
+                    >
+                        {target.name}
+                    </Text>
                 </View>
             </View>
         );
@@ -1009,7 +1018,8 @@ export default function MapScreen({ navigation }) {
     }, [npcStates, position]);
 
     return (
-        <View style={{ flex: 1, backgroundColor: "#bfc7d1", overflow: "hidden" }}>
+        <SafeAreaView style={{ flex: 1, backgroundColor: "#000000" }}>
+        <View style={{ flex: 1, backgroundColor: "#bfc7d1", overflow: "hidden"}}>
             <Modal
                 visible={Boolean(activeLocation)}
                 transparent={true}
@@ -1164,26 +1174,11 @@ export default function MapScreen({ navigation }) {
                     if (collectedMissionItemIds.includes(collectible.id)) return null;
 
                     return (
-                        <View
+                        <Collectible
                             key={collectible.id}
-                            accessibilityRole="image"
-                            accessibilityLabel={collectible.label}
-                            style={{
-                                position: "absolute",
-                                left: collectible.x,
-                                top: collectible.y,
-                                width: collectible.width,
-                                height: collectible.height,
-                                justifyContent: "center",
-                                alignItems: "center",
-                            }}
-                        >
-                            <ColoredBalloon
-                                color={collectible.color}
-                                width={collectible.width}
-                                height={collectible.height}
-                            />
-                        </View>
+                            collectible={collectible}
+                            testID={`collectible-${collectible.id}`}
+                        />
                     );
                 })}
 
@@ -1278,5 +1273,6 @@ export default function MapScreen({ navigation }) {
             {/* Joystick flutuante */}
             <FloatingJoystick onMove={handleJoystickMove} />
         </View>
+        </SafeAreaView>
     );
 }
