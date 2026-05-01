@@ -15,6 +15,9 @@ import {
     markLessonMissionCompleted,
     getLatestLessonCompletion,
     hasCompletedLessonMission,
+    getProgressDateKey,
+    isTimestampOnProgressDate,
+    buildDailyLessonMissionCompletionId,
 } from "../utils/progressStorage";
 import {
     clamp,
@@ -26,6 +29,7 @@ import {
     isPlayerNearNpc,
     getAabbRect,
     resolveActiveLessonMission,
+    resolveMageGuideAction,
 } from "./mapScreen.logic";
 
 const victorianMapData = require("../../assets/lpc-victorian-preview-see-readme/lpc-victorian-preview/victorian-preview.json");
@@ -302,6 +306,7 @@ export default function MapScreen({ navigation }) {
     const [completedLocationIds, setCompletedLocationIds] = useState([]);
     const [lessonCompletions, setLessonCompletions] = useState([]);
     const [completedLessonMissionIds, setCompletedLessonMissionIds] = useState([]);
+    const [hasVisitedSchoolTodayState, setHasVisitedSchoolTodayState] = useState(false);
     const [playerDialog, setPlayerDialog] = useState({ visible: false, message: "" });
     const [npcDialog, setNpcDialog] = useState({ visible: false, message: "" });
     const [npcStates, setNpcStates] = useState(() => npcConfigs.map(buildInitialNpcState));
@@ -366,6 +371,7 @@ export default function MapScreen({ navigation }) {
         setCompletedLocationIds(progress.completedLocationIds ?? []);
         setLessonCompletions(progress.lessonCompletions ?? []);
         setCompletedLessonMissionIds(progress.completedLessonMissionIds ?? []);
+        setHasVisitedSchoolTodayState(isTimestampOnProgressDate(progress.lastSchoolVisit));
     }, []);
 
     useFocusEffect(
@@ -494,14 +500,32 @@ export default function MapScreen({ navigation }) {
         positionRef.current = position;
     }, [position]);
 
+    const todayKey = getProgressDateKey();
+
+    const todayLessonCompletions = useMemo(
+        () =>
+            lessonCompletions.filter((completion) =>
+                completion?.completedAt ? getProgressDateKey(completion.completedAt) === todayKey : false
+            ),
+        [lessonCompletions, todayKey]
+    );
+
+    const todayCompletedLessonMissionIds = useMemo(
+        () =>
+            completedLessonMissionIds
+                .filter((completionId) => String(completionId).endsWith(`:${todayKey}`))
+                .map((completionId) => String(completionId).slice(0, -todayKey.length - 1)),
+        [completedLessonMissionIds, todayKey]
+    );
+
     const activeLessonMission = useMemo(
         () =>
             resolveActiveLessonMission({
-                lessonCompletions,
-                completedLessonMissionIds,
+                lessonCompletions: todayLessonCompletions,
+                completedLessonMissionIds: todayCompletedLessonMissionIds,
                 lessonMissionCatalog,
             }),
-        [lessonCompletions, completedLessonMissionIds]
+        [todayLessonCompletions, todayCompletedLessonMissionIds]
     );
 
     const unlockedLessonMission = useMemo(() => {
@@ -523,8 +547,8 @@ export default function MapScreen({ navigation }) {
     );
 
     const latestCompletedLesson = useMemo(
-        () => getLatestLessonCompletion({ lessonCompletions }),
-        [lessonCompletions]
+        () => getLatestLessonCompletion({ lessonCompletions: todayLessonCompletions }),
+        [todayLessonCompletions]
     );
 
     const latestCompletedLessonMission = useMemo(
@@ -535,6 +559,24 @@ export default function MapScreen({ navigation }) {
     const hasFinishedLatestLessonMission = useMemo(
         () => hasCompletedLessonMission({ completedLessonMissionIds }, latestCompletedLessonMission?.missionId),
         [completedLessonMissionIds, latestCompletedLessonMission]
+    );
+
+    const mageGuideAction = useMemo(
+        () =>
+            resolveMageGuideAction({
+                hasVisitedSchoolToday: hasVisitedSchoolTodayState,
+                latestCompletedLesson,
+                activeLessonMission,
+                latestCompletedLessonMission,
+                hasFinishedLatestLessonMission,
+            }),
+        [
+            hasVisitedSchoolTodayState,
+            latestCompletedLesson,
+            activeLessonMission,
+            latestCompletedLessonMission,
+            hasFinishedLatestLessonMission,
+        ]
     );
 
     useEffect(() => {
@@ -550,7 +592,9 @@ export default function MapScreen({ navigation }) {
 
             try {
                 await markLessonMissionCompleted(mission.missionId);
-                setCompletedLessonMissionIds((prev) => Array.from(new Set([...prev, mission.missionId])));
+                setCompletedLessonMissionIds((prev) =>
+                    Array.from(new Set([...prev, buildDailyLessonMissionCompletionId(mission.missionId)]))
+                );
                 setCollectedMissionItemIds([]);
                 setObjectiveOverrideId(null);
                 setUnlockedLessonMissionId(null);
@@ -626,7 +670,7 @@ export default function MapScreen({ navigation }) {
                         // O mage-guia decide a missao com base na ultima licao concluida.
                         void (async () => {
                             try {
-                                if (!latestCompletedLesson) {
+                                if (mageGuideAction === "goToSchool") {
                                     showNpcDialog(
                                         "Antes de seguir para missoes no mapa, conclua uma licao na Escola.",
                                         {
@@ -640,7 +684,7 @@ export default function MapScreen({ navigation }) {
                                     return;
                                 }
 
-                                if (activeLessonMission) {
+                                if (mageGuideAction === "offerMission" && activeLessonMission) {
                                     showNpcDialog(activeLessonMission.guideMessage, {
                                         anchorX: d.anchorX,
                                         anchorY: d.anchorY,
@@ -651,7 +695,7 @@ export default function MapScreen({ navigation }) {
                                     return;
                                 }
 
-                                if (latestCompletedLessonMission && hasFinishedLatestLessonMission) {
+                                if (mageGuideAction === "completedMission" && latestCompletedLessonMission) {
                                     showNpcDialog(latestCompletedLessonMission.completionMessage, {
                                         anchorX: d.anchorX,
                                         anchorY: d.anchorY,
@@ -707,6 +751,7 @@ export default function MapScreen({ navigation }) {
         latestCompletedLesson,
         latestCompletedLessonMission,
         hasFinishedLatestLessonMission,
+        mageGuideAction,
     ]);
 
     const playerCenterX = position.x + PLAYER_HITBOX / 2;
@@ -831,6 +876,7 @@ export default function MapScreen({ navigation }) {
                 if (location.id === "school") {
                     // Marca a visita diaria assim que o player entra na escola
                     markSchoolVisited().catch(() => {});
+                    setHasVisitedSchoolTodayState(true);
                     setObjectiveOverrideId(null);
                 }
             }

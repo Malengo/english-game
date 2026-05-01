@@ -5,7 +5,7 @@ export const lessonMissionCatalog = [
     missionId: "school-colors-red-balloons",
     lessonId: schoolColorsLesson.id,
     lessonLabel: "colors",
-    title: "Baloes red",
+    title: "Baloes vermelhos",
     prompt: "Encontre os baloes red no mapa",
     guideMessage: "Muito bem! Voce aprendeu as cores. Agora procure os baloes red no mapa.",
     completionMessage: "Perfeito! Voce coletou todos os baloes red.",
@@ -64,4 +64,3 @@ export function buildLessonMissionCollectibles(mission, anchorPosition) {
 
 void getLessonMissionByLessonId;
 void buildLessonMissionCollectibles;
-

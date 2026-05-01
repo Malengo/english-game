@@ -10,10 +10,14 @@ import {
   markLessonMissionCompleted,
   getLatestLessonCompletion,
   hasCompletedLessonMission,
+  getProgressDateKey,
+  buildDailyLessonMissionCompletionId,
+  isTimestampOnProgressDate,
 } from "../progressStorage";
 
 describe("progressStorage", () => {
   beforeEach(async () => {
+    jest.useRealTimers();
     await AsyncStorage.clear();
     jest.clearAllMocks();
   });
@@ -63,24 +67,49 @@ describe("progressStorage", () => {
     expect(next.completedLocationIds).toEqual(["school", "house"]);
   });
 
-  it("marca uma licao e nao duplica a conclusao", async () => {
-    const first = await markLessonCompleted({ lessonId: "school-colors-lesson", locationId: "school" });
-    const second = await markLessonCompleted({ lessonId: "school-colors-lesson", locationId: "school" });
-
-    expect(first.lessonCompletions).toHaveLength(1);
-    expect(second.lessonCompletions).toHaveLength(1);
-    expect(getLatestLessonCompletion(second)).toEqual({
+  it("marca uma licao uma vez por dia", async () => {
+    const firstDay = new Date("2026-04-29T10:00:00").getTime();
+    const nextDay = new Date("2026-04-30T10:00:00").getTime();
+    const first = await markLessonCompleted({
       lessonId: "school-colors-lesson",
       locationId: "school",
-      completedAt: expect.any(String),
+      completedAt: firstDay,
+    });
+    const duplicateSameDay = await markLessonCompleted({
+      lessonId: "school-colors-lesson",
+      locationId: "school",
+      completedAt: firstDay,
+    });
+    const secondDay = await markLessonCompleted({
+      lessonId: "school-colors-lesson",
+      locationId: "school",
+      completedAt: nextDay,
+    });
+
+    expect(first.lessonCompletions).toHaveLength(1);
+    expect(duplicateSameDay.lessonCompletions).toHaveLength(1);
+    expect(secondDay.lessonCompletions).toHaveLength(2);
+    expect(getLatestLessonCompletion(secondDay)).toEqual({
+      lessonId: "school-colors-lesson",
+      locationId: "school",
+      completedAt: new Date(nextDay).toISOString(),
     });
   });
 
-  it("marca missao da licao como concluida", async () => {
-    const updated = await markLessonMissionCompleted("school-colors-red-balloons");
+  it("marca missao da licao como concluida apenas para o dia atual", async () => {
+    const completedAt = new Date("2026-04-29T10:00:00").getTime();
+    const updated = await markLessonMissionCompleted("school-colors-red-balloons", completedAt);
 
-    expect(updated.completedLessonMissionIds).toEqual(["school-colors-red-balloons"]);
+    expect(updated.completedLessonMissionIds).toEqual([
+      buildDailyLessonMissionCompletionId("school-colors-red-balloons", completedAt),
+    ]);
+
+    jest.useFakeTimers().setSystemTime(new Date("2026-04-29T12:00:00"));
     expect(hasCompletedLessonMission(updated, "school-colors-red-balloons")).toBe(true);
+
+    jest.setSystemTime(new Date("2026-04-30T12:00:00"));
+    expect(hasCompletedLessonMission(updated, "school-colors-red-balloons")).toBe(false);
+    jest.useRealTimers();
   });
 
   it("marca visita na escola e valida visita do dia", async () => {
@@ -99,5 +128,13 @@ describe("progressStorage", () => {
     const stored = await loadProgress();
     expect(stored.dailyMissionsDate).toBeDefined();
     expect(Array.isArray(stored.dailyMissions)).toBe(true);
+  });
+
+  it("gera chave diaria usando data local de progresso", () => {
+    const timestamp = new Date("2026-04-29T10:00:00").getTime();
+
+    expect(getProgressDateKey(timestamp)).toBe("2026-04-29");
+    expect(isTimestampOnProgressDate(new Date(timestamp).toISOString(), timestamp)).toBe(true);
+    expect(buildDailyLessonMissionCompletionId("mission-a", timestamp)).toBe("mission-a:2026-04-29");
   });
 });

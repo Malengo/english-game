@@ -13,6 +13,7 @@ import {
   isPlayerNearNpc,
   resolveNpcPatrolStep,
   resolveActiveLessonMission,
+  resolveMageGuideAction,
   buildLessonMissionCollectibles,
 } from "../mapScreen.logic";
 
@@ -226,6 +227,33 @@ describe("mapScreen.logic", () => {
         lessonMissionCatalog,
       })
     ).toEqual({ lessonId: "lesson-b", missionId: "mission-b" });
+  });
+
+  it("resolve acao do mage para o ciclo diario", () => {
+    expect(
+      resolveMageGuideAction({
+        hasVisitedSchoolToday: false,
+        latestCompletedLesson: null,
+      })
+    ).toBe("goToSchool");
+
+    expect(
+      resolveMageGuideAction({
+        hasVisitedSchoolToday: true,
+        latestCompletedLesson: { lessonId: "lesson-a" },
+        activeLessonMission: { missionId: "mission-a" },
+      })
+    ).toBe("offerMission");
+
+    expect(
+      resolveMageGuideAction({
+        hasVisitedSchoolToday: true,
+        latestCompletedLesson: { lessonId: "lesson-a" },
+        activeLessonMission: null,
+        latestCompletedLessonMission: { missionId: "mission-a" },
+        hasFinishedLatestLessonMission: true,
+      })
+    ).toBe("completedMission");
   });
 
   it("monta os baloes da missao com base no ponto de ancoragem", () => {

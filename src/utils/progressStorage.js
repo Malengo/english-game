@@ -8,6 +8,28 @@ const DEFAULT_PROGRESS = {
   completedLessonMissionIds: [],
 };
 
+export function getProgressDateKey(timestamp = Date.now()) {
+  const date = new Date(timestamp);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+}
+
+export function isTimestampOnProgressDate(timestamp, referenceTimestamp = Date.now()) {
+  if (typeof timestamp !== "string" && typeof timestamp !== "number") return false;
+
+  const date = new Date(timestamp);
+  if (Number.isNaN(date.getTime())) return false;
+
+  return getProgressDateKey(date.getTime()) === getProgressDateKey(referenceTimestamp);
+}
+
+export function buildDailyLessonMissionCompletionId(missionId, timestamp = Date.now()) {
+  return `${missionId}:${getProgressDateKey(timestamp)}`;
+}
+
 function normalizeProgress(rawProgress) {
   if (!rawProgress || typeof rawProgress !== "object") {
     return DEFAULT_PROGRESS;
@@ -107,19 +129,12 @@ export async function hasVisitedSchoolToday() {
   const progress = await loadProgress();
   if (!progress.lastSchoolVisit) return false;
 
-  const lastVisit = new Date(progress.lastSchoolVisit);
-  const now = new Date();
-
-  return (
-    lastVisit.getFullYear() === now.getFullYear() &&
-    lastVisit.getMonth() === now.getMonth() &&
-    lastVisit.getDate() === now.getDate()
-  );
+  return isTimestampOnProgressDate(progress.lastSchoolVisit);
 }
 
 export async function ensureDailyMissions() {
   const progress = await loadProgress();
-  const todayDate = new Date().toISOString().slice(0, 10);
+  const todayDate = getProgressDateKey();
 
   if (
     progress.dailyMissionsDate === todayDate &&
@@ -151,9 +166,11 @@ export async function markLessonCompleted({ lessonId, locationId = undefined, co
   }
 
   const progress = await loadProgress();
-  const alreadyCompleted = progress.lessonCompletions.some((entry) => entry.lessonId === lessonId);
+  const alreadyCompletedToday = progress.lessonCompletions.some(
+    (entry) => entry.lessonId === lessonId && isTimestampOnProgressDate(entry.completedAt, completedAt)
+  );
 
-  if (alreadyCompleted) {
+  if (alreadyCompletedToday) {
     return progress;
   }
 
@@ -172,14 +189,14 @@ export async function markLessonCompleted({ lessonId, locationId = undefined, co
   return saveProgress(next);
 }
 
-export async function markLessonMissionCompleted(missionId) {
+export async function markLessonMissionCompleted(missionId, completedAt = Date.now()) {
   if (typeof missionId !== "string" || !missionId.trim()) {
     return loadProgress();
   }
 
   const progress = await loadProgress();
   const nextCompleted = new Set(progress.completedLessonMissionIds);
-  nextCompleted.add(missionId);
+  nextCompleted.add(buildDailyLessonMissionCompletionId(missionId, completedAt));
 
   return saveProgress({
     ...progress,
@@ -195,8 +212,10 @@ export function getLatestLessonCompletion(progress) {
 export function hasCompletedLessonMission(progress, missionId) {
   if (typeof missionId !== "string" || !missionId.trim()) return false;
 
+  const dailyCompletionId = buildDailyLessonMissionCompletionId(missionId);
+
   return Array.isArray(progress?.completedLessonMissionIds)
-    ? progress.completedLessonMissionIds.includes(missionId)
+    ? progress.completedLessonMissionIds.includes(dailyCompletionId)
     : false;
 }
 

@@ -1,27 +1,27 @@
 import React from "react";
 import { View, Text, TouchableOpacity } from "react-native";
 
-export default function HouseMissionScreen({ navigation, route }) {
+export default function BakeryMissionScreen({ navigation, route }) {
   const autoStart = route?.params?.autoStart;
 
   return (
     <View
       style={{
         flex: 1,
-        backgroundColor: "#FFF3E0",
+        backgroundColor: "#FFF8E1",
         justifyContent: "center",
         alignItems: "center",
         padding: 20,
       }}
     >
-      <Text style={{ fontSize: 52, marginBottom: 10 }}>🏠</Text>
+      <Text style={{ fontSize: 52, marginBottom: 10 }}>🥐</Text>
       <Text style={{ fontSize: 24, fontWeight: "bold", marginBottom: 8, textAlign: "center" }}>
-        Casa
+        Padaria
       </Text>
       <Text style={{ fontSize: 16, color: "#444", textAlign: "center", lineHeight: 22, marginBottom: 20 }}>
         {autoStart
-          ? "Licao iniciada! Aqui voce vai aprender vocabulario da casa em ingles."
-          : "Bem-vindo a Casa!"}
+          ? "Licao iniciada! Aqui voce vai aprender vocabulario de padaria em ingles."
+          : "Bem-vindo a Padaria!"}
       </Text>
 
       <TouchableOpacity

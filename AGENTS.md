@@ -2,289 +2,418 @@
 
 ## Project Overview
 
-**English Game** is a gamified English learning mobile game built with Expo that teaches alphabet letters through interactive missions. The core architecture implements a **city exploration system** where players navigate a virtual city map with multiple districts/locations, each containing educational missions. Players progress by exploring different areas, triggering location-based missions, and completing challenges to earn XP and coins.
+**English Game** is a gamified English learning game built with Expo and React Native. The current app is centered on a tile-based city map where the player explores locations, meets NPCs, starts educational missions, completes lessons, and unlocks later areas through saved progress.
 
-**Vision:** Transform English learning into an RPG-like adventure where exploring a city unlocks different lesson areas and mission types.
+**Vision:** turn English learning into a light RPG-style city adventure. Each location should feel like a meaningful place in the world and should teach a focused English topic through short interactive missions.
+
+**Current focus:** city exploration, school color lesson, house mission placeholder, NPC interaction, location unlocking, and persistent lesson progress.
 
 **Tech Stack:**
 - React Native 0.81.5 with React 19.1.0
-- Expo 54.0.33 for cross-platform deployment (iOS, Android, Web)
-- React Navigation 7.x for native stack navigation
-- TypeScript (strict mode enabled) for type safety
-- ESLint with Expo config for code quality
+- Expo 54.0.33 for iOS, Android, and Web
+- React Navigation 7.x with native stack navigation
+- JavaScript codebase with TypeScript strict config available
+- Jest + `@testing-library/react-native` for automated tests
+- AsyncStorage for local progress persistence
 
 ## Architecture Essentials
 
-### City & Mission System (Core Concept)
-The game centers on **city exploration with location-based missions**:
+### City & Mission System
 
-1. **City Map (MapScreen):** Main world where player explores and moves between locations
-2. **City Locations/Districts:** Fixed areas (School, Library, Park, Town Square, etc.) rendered as collision boxes
-3. **Mission Triggering:** Entering a location's collision zone navigates to a mission screen
-4. **Mission Screens:** Each location has an associated learning screen with specific missions
-5. **Progression:** Completing missions grants XP/coins, unlocking new areas or challenges
+The game currently has these core pieces:
 
-**Current Implementation:** Only one location (School/"Escola") is implemented. Future expansion will add multiple districts with different mission types.
+1. **MapScreen** (`src/screens/MapScreen.js`): main city exploration screen.
+2. **Tiled map assets:** `victorian-preview.json` and `victorian-preview.png` define the world size, background, collision layers, location points, and NPC route objects.
+3. **Location config** (`src/data/locationConfig.js`): central list of available places and their mission routes.
+4. **Mission screens:** location-specific learning screens such as `SchoolMissionScreen` and `HouseMissionScreen`.
+5. **Progress storage** (`src/utils/progressStorage.js`): persists completed locations, lesson completions, daily mission data, and completed post-lesson missions.
+6. **Map logic helpers** (`src/screens/mapScreen.logic.js`): pure movement, collision, stage, NPC, and mission helper functions that are covered by tests.
+
+### Current Locations
+
+Locations are configured in `src/data/locationConfig.js`.
+
+Current entries:
+- `school`: first/tutorial location, route `SchoolMission`, stage 1, teaches colors.
+- `house`: unlocks after school, route `HouseMission`, stage 2, currently a simple placeholder mission.
+- `bakery`: stage 3 location, route `BakeryMission`, currently a simple placeholder mission.
+
+When adding or editing locations, keep `screenRoute` aligned with the route registered in `App.js`.
 
 ### Navigation Structure
-The app uses React Navigation's native stack navigator:
-- **MapScreen** (`src/screens/MapScreen.js`): City exploration with player movement and collision detection
-- **SchoolScreen** (`src/screens/SchoolScreen.js`): Mission interface (alphabet learning - prototype)
 
-Entry point: `App.js` sets up NavigationContainer and Stack.Navigator with routes "Mapa" and "Escola".
+`App.js` defines the native stack:
 
-**Critical Pattern:** When player enters a location's collision zone, `MapScreen` detects it via `useEffect` and calls `navigation.navigate("Escola")`. After completing the mission, `navigation.goBack()` returns to the map.
-
-### State Management & Data Flow
-- **No Redux/Context** - Uses React hooks (`useState`, `useEffect`) at screen level
-- **Map Position State:** Stored in MapScreen as `{x: number, y: number}` coordinates
-- **Mission Progress:** Each mission screen tracks progress independently (e.g., alphabet index in SchoolScreen)
-- **Collision Detection:** `useEffect` in MapScreen monitors position changes and triggers navigation when player enters a location zone
-
-**Location Collision Zones:**
-Currently only one location (School) is defined:
 ```javascript
-escolaArea = { x: 200, y: 100, width: 80, height: 80 } // Hard-coded in MapScreen.js
+<Stack.Screen name="MAPAS" component={MapScreen} />
+<Stack.Screen name="SchoolMission" component={SchoolMissionScreen} options={{ title: "School" }} />
+<Stack.Screen name="HouseMission" component={HouseMissionScreen} options={{ title: "Casa" }} />
 ```
-**Future:** This should be refactored to a `locations` array for multiple districts:
-```javascript
-const locations = [
-  { id: "school", name: "Escola", x: 200, y: 100, width: 80, height: 80, route: "Escola", icon: "📚" },
-  { id: "library", name: "Biblioteca", x: 400, y: 150, width: 80, height: 80, route: "Library", icon: "📖" },
-  { id: "park", name: "Parque", x: 100, y: 300, width: 80, height: 80, route: "Park", icon: "🌳" },
-  // ... more locations
-];
-```
+
+Critical pattern:
+- `MapScreen` detects when the player enters a location trigger.
+- It opens a modal for available locations or a blocked modal for locked locations.
+- Pressing "Continuar" calls `navigation.navigate(activeLocation.screenRoute, params)`.
+- Mission screens call `navigation.goBack()` to return to the map.
+- `MapScreen` refreshes progress on focus using `useFocusEffect`.
 
 ### Component Hierarchy
-```
+
+```text
 App.js
-└── NavigationContainer
-    └── Stack.Navigator
-        ├── MapScreen (screen "Mapa") - City exploration
-        │   └── Player (positioned component)
-        └── Mission Screens (screen "Escola", "Library", etc.)
-            └── Location-specific missions
+`-- NavigationContainer
+    `-- Stack.Navigator
+        |-- MapScreen ("MAPAS")
+        |   |-- Player
+        |   |-- Npc
+        |   |-- FloatingJoystick
+        |   `-- PlayerDialog
+        |-- SchoolMissionScreen ("SchoolMission")
+        |-- HouseMissionScreen ("HouseMission")
+        `-- BakeryMissionScreen ("BakeryMission")
 ```
 
-- **Player Component** (`src/components/Player.js`): Stateless sprite component with emoji/image display. Props: `x`, `y`, `direction` ('up'/'down'/'left'/'right'), `character` (emoji string), `isMoving`, `useImage`, `testID` (default: `player-container`)
-- **Data Layer** (`src/data/alphabet.js`): Simple export of alphabet array - single source of truth for current mission content
+Important components:
+- `src/components/Player.js`: player sprite renderer. Supports sprite-sheet image mode and emoji fallback.
+- `src/components/Npc.js`: NPC sprite renderer.
+- `src/components/FloatingJoystick.js`: movement input.
+- `src/components/PlayerDialog.js`: speech/dialog overlay for player and NPC messages.
+
+## Data & Progress Flow
+
+### Local State
+
+The project does not use Redux or global React Context. Most state is screen-scoped with hooks.
+
+`MapScreen` owns:
+- Player position and movement direction.
+- Active/blocked location modal state.
+- NPC positions and proximity state.
+- Dialog state.
+- Completed locations and lesson mission progress loaded from storage.
+- Active post-lesson collectibles.
+
+Mission screens own their own quiz/progression UI state.
+
+### Persistent Progress
+
+Progress lives in `src/utils/progressStorage.js` under the AsyncStorage key `@english-game:progress:v1`.
+
+Stored fields include:
+- `completedLocationIds`
+- `lessonCompletions`
+- `completedLessonMissionIds`
+- `lastSchoolVisit`
+- `dailyMissionsDate`
+- `dailyMissions`
+
+Use the exported helpers instead of writing directly to AsyncStorage:
+- `loadProgress`
+- `saveProgress`
+- `markLocationCompleted`
+- `markSchoolVisited`
+- `hasVisitedSchoolToday`
+- `ensureDailyMissions`
+- `markLessonCompleted`
+- `markLessonMissionCompleted`
+- `getLatestLessonCompletion`
+- `hasCompletedLessonMission`
+
+### Stage Unlocking
+
+Stage calculation is in `calculateCurrentStage` from `src/screens/mapScreen.logic.js`.
+
+Rule: completing a location unlocks the next stage after that location's `stageRequired`.
+
+Example:
+- Complete `school` at stage 1.
+- Current stage becomes at least 2.
+- `house` becomes available.
+
+## Movement, Collision, and Map Behavior
+
+### World Setup
+
+`MapScreen` imports the Tiled JSON map:
+
+```javascript
+const victorianMapData = require("../../assets/lpc-victorian-preview-see-readme/lpc-victorian-preview/victorian-preview.json");
+const MAP_BACKGROUND = require("../../assets/lpc-victorian-preview-see-readme/lpc-victorian-preview/victorian-preview.png");
+```
+
+World size is computed from map tile dimensions:
+
+```javascript
+const WORLD_WIDTH = victorianMapData.width * victorianMapData.tilewidth;
+const WORLD_HEIGHT = victorianMapData.height * victorianMapData.tileheight;
+```
+
+### Player Movement
+
+Movement is joystick-driven:
+- `FloatingJoystick` calls `handleJoystickMove`.
+- `moveVectorRef` stores the current movement vector.
+- A movement interval resolves steps through `resolveMovementStep`.
+- Direction state drives sprite animation: `up`, `right`, `down`, `left`.
+
+The initial position is based on tile coordinates:
+
+```javascript
+const SPAWN_TILE_X = 56;
+const SPAWN_TILE_Y = 53;
+```
+
+### Collision
+
+Collision data comes from Tiled object layers whose names include `collision`.
+
+Supported collision shapes:
+- Rectangles
+- Polygons
+
+The player collision box is smaller than the visual sprite. Keep this intentional: it makes movement feel less sticky around buildings and map decorations.
+
+Important helpers in `mapScreen.logic.js`:
+- `resolveMovementStep`
+- `collidesWithAnyShape`
+- `getPlayerCollisionRect`
+- `rectsOverlap`
+- `getAabbRect`
+
+### Location Triggers
+
+Location trigger rectangles are built from Tiled object layers when a layer matching the location id exists. If no map point exists, the code falls back to `tileX`, `tileY`, `width`, and `height` from `locationConfig.js`.
+
+Location entry actions are resolved with:
+
+```javascript
+resolveLocationEntryAction({
+  isInside,
+  wasInside,
+  activeLocationId,
+  blockedLocationId,
+  currentStage,
+  requiredStage,
+});
+```
+
+Do not reintroduce hardcoded per-location collision checks in `MapScreen`; use the `locations` array and the Tiled map data.
+
+## NPC System
+
+NPC config lives in `src/data/npcConfig.js`.
+
+NPC routes can come from the Tiled object layer named `npc_routes`. Route matching checks:
+- `routeObjectName`
+- NPC `id`
+- NPC `name`
+
+Important helpers:
+- `buildInitialNpcState` in `MapScreen.js`
+- `processNpcTick` in `MapScreen.js`
+- `resolveNpcPatrolStep` in `mapScreen.logic.js`
+- `isPlayerNearNpc` in `mapScreen.logic.js`
+
+NPCs pause and show dialog when the player is nearby. Dialog selection prefers the closest NPC when more than one NPC enters proximity.
+
+## Lesson and Mission Content
+
+### School Lesson
+
+The current school lesson is in `src/data/schoolColorsLesson.js`.
+
+`SchoolMissionScreen`:
+- Displays a short multiple-choice color lesson.
+- Tracks selected answers and feedback locally.
+- On completion, calls:
+  - `markLocationCompleted("school")`
+  - `markLessonCompleted({ lessonId, locationId: "school" })`
+  - `markSchoolVisited()`
+- Returns to the map with `navigation.goBack()`.
+
+### Post-Lesson Mission Collectibles
+
+`src/data/lessonMissionCatalog.js` defines follow-up collectible missions that can appear on the map after a lesson is completed.
+
+`MapScreen` resolves the active lesson mission with:
+- `resolveActiveLessonMission`
+- `buildLessonMissionCollectibles`
+
+When all collectibles for the active mission are collected, `markLessonMissionCompleted` is called.
 
 ## Development Workflows
 
 ### Getting Started
+
 ```bash
-npm install           # Install dependencies
-npm start             # Start Expo Metro and display menu
-npm run android       # Build Android target
-npm run ios           # Build iOS target
-npm run web           # Run web version
-npm run lint          # Run ESLint (Expo config)
+npm install
+npm start
+npm run android
+npm run ios
+npm run web
 ```
 
-### Key Commands
-- `expo start`: Opens interactive menu - press `a` for Android, `i` for iOS, `w` for web
-- `npm run reset-project`: Resets to blank project (moves current code to app-example)
+### Quality Commands
 
-### Code Quality
-- **Linting:** `npm run lint` - enforces Expo ESLint rules
-- **TypeScript:** Strict mode enabled (`tsconfig.json`) but codebase is still JS
-- **File Structure:** `.ts`/`.tsx` files compiled alongside `.js` files
-
-## Project-Specific Patterns
-
-### Movement & Collision System
-MapScreen implements custom collision detection:
-1. Player starts at `{x: 50, y: 100}`
-2. Arrow buttons call `move(dx, dy, direction)` to update position by fixed increments (10px per press) and track last direction
-3. `useEffect` on position changes checks if player is inside school collision box
-4. Boolean calculation: `x > schoolX && x < schoolX + width && y > schoolY && y < schoolY + height`
-
-**Player Direction Tracking:**
-- State `lastDirection` tracks the last movement direction ('up', 'down', 'left', 'right')
-- State `isMoving` tracks whether animation should play (set to true during move, false after 200ms)
-- Passed to Player component to enable directional sprite feedback and animation
-- Used for future: directional animation frames, facing direction on stop
-
-**When Modifying:**
-- Keep collision calculation in `useEffect` dependency array: `[position, navigation]`
-- Movement increments are hardcoded - consider extracting to constants if adding difficulty levels
-- School area bounds must be updated if changing layout
-- Direction and isMoving props enable sprite animation implementation
-- Animation timeout is 200ms per move - adjust if changing movement speed
-
-### Screen-Scoped State
-Each screen manages its own state independently:
-- No shared state between screens - navigation passes control, not data
-- Use navigation params (`navigation.navigate()`, `navigation.goBack()`) only for navigation flow
-- Mission progress resets when returning to map (by design - sessions are independent)
-- Each location is a fresh experience
-
-### Gamification Mechanics (Current & Future)
-Current implementation shows basic reward system in SchoolScreen:
-```javascript
-// After completing all letters
-alert("Você ganhou XP + moedas!");
+```bash
+npm run lint
+npm test
+npm run test:watch
+npm run test:coverage
+npm run tdd
 ```
 
-**Future Expansion:**
-- XP tracking system (persist across locations)
-- Coin/currency rewards per mission
-- Unlock new locations based on level
-- Daily missions
-- Achievement system
-- Mission difficulty levels
-
-### Styling Conventions
-- **Inline styles** preferred over StyleSheet for simple layouts
-- Flexbox for layout (`flex: 1`, `justifyContent`, `alignItems`)
-- Absolute positioning for game elements (Player, school area)
-- Color scheme: `#ddd` (map background), `orange` (school), `blue` (player), `#E6F4FE` (Android adaptive icon background)
-
-### Character/Sprite System
-**Current Implementation:** Emoji-based character display with animation support
-- Player rendered as emoji (🧑‍🦱 by default) inside a 40x40px circle
-- Semi-transparent blue background: `rgba(100, 150, 255, 0.3)`
-- Props support: `x`, `y`, `direction`, `character` (emoji string), `isMoving`, `useImage`
-- **Animation:** Opacity flicker when moving (frameIndex cycles through 4 frames at 100ms intervals)
-
-**Available Character Emojis:**
-- 🧑‍🦱 Person with hair (current)
-- 🧔 Bearded man
-- 👨 Man
-- 👩 Woman
-- 🧙 Mage/Wizard
-- 🗡️ Swordsman
-
-**To Change Character:**
-Update `character` prop in MapScreen: `<Player ... character="🧙" />`
-
-**To Enable Animation:**
-```javascript
-// In MapScreen, the move() function now sets isMoving state
-const move = (dx, dy, direction) => {
-    setLastDirection(direction);
-    setIsMoving(true);  // Animation starts
-    // ... position update ...
-    setTimeout(() => setIsMoving(false), 200);  // Stops after 200ms
-};
-```
-
-**To Use Custom PNG Sprite:**
-1. Add image file to `assets/images/player.png` (recommend 64x64 or 128x128 PNG)
-2. Change prop in MapScreen: `<Player ... useImage={true} />`
-3. Player.js will automatically handle rotation based on `direction` prop
-4. Image will show opacity change when moving for visual feedback
-
-**Future: Sprite Sheet Animation**
-- Currently uses opacity flicker for emoji animation
-- For sprite sheets: read frameIndex to calculate pixel offset for each animation frame
-- Example: `marginTop: -frameIndex * 32` for vertical sprite sheet with 32px frames
-
-## Integration Points & External Dependencies
-
-### Expo Ecosystem
-- **expo-router**: Plugin enabled (typedRoutes: true) but currently unused - App.js uses manual navigation
-- **expo-font**: Pre-installed but not actively used
-- **expo-haptics**: Pre-installed for future vibration feedback (e.g., on collision)
-- **Vector Icons**: Pre-installed via @expo/vector-icons (can replace emoji placeholders)
-
-### React Navigation
-All navigation happens through the Stack.Navigator - no tab navigation or drawer menu currently.
-
-### Platform-Specific Config
-`app.json` contains platform adaptations:
-- **iOS:** `supportsTablet: true`
-- **Android:** Edge-to-edge enabled, adaptive icon configured, predictive back gesture disabled
-- **Web:** Static output, favicon configured
-- **New Architecture:** Enabled (`newArchEnabled: true`) and React Compiler experiments active
+Use `npm run web` for the fastest manual gameplay feedback loop.
 
 ## Adding New Features
 
-### 🏢 Adding New City Locations & Missions (Priority)
-1. **Refactor MapScreen** to use a `locations` array instead of hardcoded `escolaArea`
-2. **Create new mission data file** in `src/data/` (e.g., `libraryMissions.js`, `parkChallenges.js`)
-3. **Add new mission screen** in `src/screens/` (e.g., `LibraryScreen.js`) following SchoolScreen pattern
-4. **Register route** in App.js Stack.Navigator with location name
-5. **Add location to map** by appending to locations array with collision box and route reference
-6. **Add visual marker** on map using absolute positioning (can use emoji or colored box like School)
+### Adding a New Location and Mission
 
-**Example:** Adding a Library location for vocabulary missions:
+1. Add the mission screen in `src/screens/`, for example `BakeryMissionScreen.js`.
+2. Register the route in `App.js`.
+3. Add or update the location entry in `src/data/locationConfig.js`.
+4. If possible, add a matching Tiled object layer/object for the location id so the trigger uses map data.
+5. Add mission content in `src/data/` if the mission has reusable data.
+6. Update progress behavior if the mission should unlock later stages.
+7. Add focused tests for the data, screen behavior, and any new pure logic.
+
+Example route/config alignment:
+
 ```javascript
-// In locations array
-{ id: "library", name: "Biblioteca", x: 400, y: 150, width: 80, height: 80, route: "Biblioteca" }
-// In App.js
-<Stack.Screen name="Biblioteca" component={LibraryScreen} />
-// LibraryScreen.js follows same pattern as SchoolScreen but with vocabulary data
+// App.js
+<Stack.Screen name="BakeryMission" component={BakeryMissionScreen} />
+
+// src/data/locationConfig.js
+{
+  id: "bakery",
+  name: "Padaria",
+  screenRoute: "BakeryMission",
+  stageRequired: 3,
+}
 ```
 
-### Adding Lesson Levels to Existing Locations
-1. Create new data file in `src/data/` (e.g., `numbers.js`, `colors.js`)
-2. Add new screen in `src/screens/` with same pattern as SchoolScreen (useState for index, useEffect for progression)
-3. Register route in App.js Stack.Navigator
-4. Add new collision zone or expand existing one in MapScreen
+### Adding a New Lesson to an Existing Location
 
-### Adding Interactive Elements
-- Use React Native core components: View, Text, Button, ScrollView, FlatList
-- All interactive zones use absolute positioning like Player and location areas
-- Test on web via `npm run web` for quick iteration
+1. Create a data file in `src/data/`.
+2. Add a mission screen or extend an existing one if the interaction pattern is the same.
+3. Track completion through `markLessonCompleted`.
+4. Add optional follow-up collectibles in `lessonMissionCatalog.js`.
+5. Add tests before or alongside implementation.
 
-### Adding Sound/Feedback
-- Haptics: `import { Haptics } from 'expo-haptics'` and call `Haptics.impactAsync()`
-- Trigger on mission complete: `Haptics.impactAsync()` in mission screens
-- Audio: Would require installing `expo-av` (not currently included)
+### Adding Sound or Feedback
+
+`expo-haptics` is already installed and can be used for tactile feedback on mobile.
+
+Audio is not currently configured. Adding audio would likely require installing and wiring an Expo audio package.
 
 ## File Organization
 
-```
+```text
 english-game/
-├── App.js (root navigation setup - register all mission screens here)
-├── app.json (Expo config, platform-specific settings)
-├── package.json (dependencies, scripts)
-├── AGENTS.md (this file - AI agent guide)
-├── README.md (project overview)
-├── src/
-│   ├── screens/
-│   │   ├── MapScreen.js (city exploration + collision detection for all locations)
-│   │   ├── SchoolScreen.js (alphabet learning mission)
-│   │   └── [Future] LibraryScreen.js, ParkScreen.js, etc. (additional missions)
-│   ├── components/
-│   │   └── Player.js (positioned game sprite)
-│   ├── data/
-│   │   ├── alphabet.js (School mission content)
-│   │   └── [Future] vocabulary.js, numbers.js, etc. (other mission content)
-│   └── utils/ [Future]
-│       └── locations.js (centralized location definitions for map)
-└── components/ (legacy Expo template files - not used in current app)
+|-- App.js
+|-- app.json
+|-- package.json
+|-- AGENTS.md
+|-- README.md
+|-- assets/
+|   |-- images/
+|   `-- lpc-victorian-preview-see-readme/
+|-- src/
+|   |-- components/
+|   |   |-- FloatingJoystick.js
+|   |   |-- Npc.js
+|   |   |-- Player.js
+|   |   |-- PlayerDialog.js
+|   |   `-- __tests__/
+|   |-- data/
+|   |   |-- alphabet.js
+|   |   |-- lessonMissionCatalog.js
+|   |   |-- locationConfig.js
+|   |   |-- npcConfig.js
+|   |   |-- schoolColorsLesson.js
+|   |   `-- __tests__/
+|   |-- screens/
+|   |   |-- BakeryMissionScreen.js
+|   |   |-- HouseMissionScreen.js
+|   |   |-- LoginScreen.js
+|   |   |-- MapScreen.js
+|   |   |-- SchoolMissionScreen.js
+|   |   |-- mapScreen.logic.js
+|   |   `-- __tests__/
+|   |-- services/
+|   |   `-- authService.js
+|   `-- utils/
+|       |-- progressStorage.js
+|       `-- __tests__/
+|-- __mocks__/
+`-- prompts/
 ```
-
-**Active Code:** All gameplay logic in `src/`
-**Legacy:** Root `components/` directory is unused template code
-**Naming Convention:** Screen names match location routes ("Mapa", "Escola", "Biblioteca", etc.)
 
 ## Code Style & Conventions
 
-- **Comments:** Portuguese for gameplay logic (e.g., "Detecta entrada na escola")
-- **Naming:** Portuguese screen names ("Mapa", "Escola"), English variable names (position, index)
-- **Imports:** Standard Node CommonJS style, no barrel exports yet
-- **Constants:** Hard-coded values in component bodies (school area, starting position) - extract to constants file if reused
+- Prefer existing local patterns over introducing a new architecture.
+- Keep gameplay comments in Portuguese when they explain player-facing behavior.
+- Keep route names and `screenRoute` values synchronized.
+- Use `locationConfig.js` for locations; avoid hardcoded location-specific trigger logic.
+- Use pure helpers in `mapScreen.logic.js` for logic that should be tested.
+- Use AsyncStorage only through `progressStorage.js` helpers.
+- Keep `testID` values stable; they are part of the test contract.
+- Inline styles are common in this app. Use them consistently unless a screen grows enough to justify extraction.
+- The active app code lives in `src/`. Root template folders/files should not be treated as gameplay code unless they are wired into `App.js`.
 
-### Testing Conventions (`@testing-library/react-native`)
+## Sprite System
 
-- Prefer behavior-oriented queries first (`getByText`, accessibility queries) when the element is user-facing.
-- Use `testID` for non-text visual elements (sprite/container/map overlays) where text/accessibility selectors are not stable.
-- Keep `testID` values stable because they are part of the test contract; if you rename one, update tests in the same change.
-- Use consistent `kebab-case` IDs (examples already in project: `player-container`, `player-box`).
-- For reusable components, forward `testID` to the root interactive/visual element so tests can select the same node across render modes (emoji/image), as done in `src/components/Player.js` and `src/components/__tests__/Player.test.js`.
+`Player.js` supports two render modes:
+
+1. **Sprite-sheet image mode** with `useImage={true}`.
+2. **Emoji fallback mode** with `useImage={false}`.
+
+Current map usage passes `useImage={true}` and expects:
+
+```text
+assets/images/player.png
+```
+
+The player sheet is treated as a 3x4 grid:
+- 3 columns of frames
+- 4 rows of directions
+- Direction row order: `up`, `right`, `down`, `left`
+
+If changing sprite dimensions, update the constants in `Player.js` and adjust tests if needed.
+
+## Testing Conventions
+
+Use `@testing-library/react-native`.
+
+Guidelines:
+- Prefer user-facing queries (`getByText`, accessibility queries) for visible UI.
+- Use `testID` for sprites, map overlays, and non-text visual elements.
+- Keep `testID` in `kebab-case`.
+- Add tests for pure map logic in `src/screens/__tests__/mapScreen.logic.test.js`.
+- Add component tests next to component behavior in `src/components/__tests__/`.
+- Add progress persistence tests in `src/utils/__tests__/progressStorage.test.js`.
+
+Existing useful test areas:
+- Player rendering and animation contract.
+- NPC rendering and proximity behavior.
+- Location config validation.
+- Map entry/progression integration.
+- Mission screen completion behavior.
+- Progress storage normalization and updates.
 
 ## Debugging Tips
 
-- **Collision Detection:** Log position and location zones in MapScreen `useEffect`:
-  ```javascript
-  console.log(`Player at ${position.x},${position.y} - Checking locations...`);
-  ```
-- **Navigation Flow:** Verify screen transitions are triggered correctly by collision detection
-- **Web Testing:** Run `npm run web` for fastest feedback loop - no emulator required
-- **Device Testing:** Use Expo Go app with QR code from `expo start` for quick mobile testing
-- **Mission Testing:** Each location screen can be tested independently by manually navigating to it
+- **Map position:** use the debug HUD in development mode to inspect player coordinates and current stage.
+- **Collision:** inspect Tiled collision object layers first, then verify the player's smaller collision box.
+- **Locations:** confirm the location id matches the Tiled object layer name or that fallback `tileX`/`tileY` data is valid.
+- **Navigation:** confirm `screenRoute` exists in `App.js`.
+- **Progress:** clear AsyncStorage or use tests when validating unlock flow from scratch.
+- **Web testing:** run `npm run web` for quick iteration.
+- **Device testing:** run `npm start` and use Expo Go or a development build.
 
+## Known Maintenance Notes
+
+- The README may still describe older alphabet-focused behavior in places. Prefer this file and the current source code when they differ.
+- `BakeryMissionScreen.js` is currently a placeholder and needs a real vocabulary mission.
+- `LoginScreen.js` and `authService.js` exist, but login is not wired into `App.js`.
+- Some older docs or files may contain broken UTF-8 display artifacts. New edits should use clean UTF-8 or plain ASCII consistently.

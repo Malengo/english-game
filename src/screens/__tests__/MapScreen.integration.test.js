@@ -16,6 +16,9 @@ jest.mock("../../utils/progressStorage", () => ({
   markLessonMissionCompleted: () => Promise.resolve(),
   getLatestLessonCompletion: () => null,
   hasCompletedLessonMission: () => false,
+  getProgressDateKey: () => "2026-04-29",
+  isTimestampOnProgressDate: () => false,
+  buildDailyLessonMissionCompletionId: (missionId) => `${missionId}:2026-04-29`,
 }));
 
 jest.mock("../../data/npcConfig", () => ({

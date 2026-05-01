@@ -1,74 +1,69 @@
-# English Game 🎮
+# English Game
 
-Um jogo mobile gamificado para aprendizagem de inglês! Explore uma cidade dinâmica, complete missões educacionais em diferentes locais e domine o alfabeto inglês através de gameplay interativo.
+Um jogo mobile gamificado para aprendizagem de ingles. Explore uma cidade, complete missoes educacionais em diferentes locais e avance por licoes curtas dentro de uma experiencia de mapa 2D.
 
-## 🎯 Sobre o Projeto
+## Sobre o Projeto
 
-**English Game** é um aplicativo React Native educacional que transforma o aprendizado de inglês em uma aventura gamificada. O jogador navega por uma cidade virtual onde cada bairro/local oferece diferentes missões para completar. O jogo usa um sistema de navegação baseado em mapa onde explorar diferentes áreas da cidade leva a novas oportunidades de aprendizado.
+**English Game** e um aplicativo React Native educacional que transforma o aprendizado de ingles em uma aventura gamificada. O jogador navega por uma cidade virtual onde cada local oferece oportunidades de aprendizado, missoes e progresso.
 
-### Características
-- 🗺️ Exploração de cidade com mapa 2D
-- 🎓 Missões educacionais em múltiplos locais
-- 🎮 Gamificação com progressão de nível
-- 📱 Suporte multiplataforma (iOS, Android, Web)
-- ⚡ Construído com Expo e React Native
+### Caracteristicas
 
-## 🚀 Getting Started
+- Exploracao de cidade com mapa 2D
+- Missoes educacionais em multiplos locais
+- Progressao por estagios e locais desbloqueaveis
+- NPCs, dialogos e objetivos no mapa
+- Suporte multiplataforma: iOS, Android e Web
+- Construido com Expo e React Native
 
-1. Install dependencies
+## Getting Started
+
+1. Instale as dependencias:
 
    ```bash
    npm install
    ```
 
-2. Start the app
+2. Inicie o app:
 
    ```bash
-   npx expo start
+   npm start
    ```
 
-In the output, you'll find options to open the app in a
+No menu do Expo, voce pode abrir o app no Android, iOS, Web, Expo Go ou em uma development build.
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+## Desenvolvimento
 
-
-## 📂 Desenvolvimento
-
-### Scripts Disponíveis
+### Scripts Disponiveis
 
 ```bash
 npm start             # Inicia Expo com menu interativo
-npm run android       # Build para Android
-npm run ios           # Build para iOS
-npm run web           # Versão web
-npm run lint          # Verifica código
-npm run reset-project # Reseta para projeto em branco
+npm run android       # Abre no Android
+npm run ios           # Abre no iOS
+npm run web           # Abre a versao web
+npm run lint          # Verifica codigo
 npm test              # Executa testes uma vez
 npm run test:watch    # Modo watch para TDD
-npm run test:coverage # Gera relatório de cobertura
-npm run tdd           # Watch + cobertura (fluxo TDD)
+npm run test:coverage # Gera relatorio de cobertura
+npm run tdd           # Watch + cobertura
 ```
 
-## ✅ Testes e TDD
+## Testes e TDD
 
-### Política do projeto
+### Politica do projeto
 
-- Toda funcionalidade nova deve começar com especificação e teste automatizado.
-- Meta inicial de cobertura global: **60%** (branches, functions, lines, statements).
-- Esta fase de estabilização foca nas camadas de dados/utilitários e telas de missão.
+- Toda funcionalidade nova deve comecar com especificacao e teste automatizado quando fizer sentido.
+- Meta inicial de cobertura global: **60%**.
+- A fase atual foca em dados, utilitarios, logica de mapa e telas de missao.
 
-### Fluxo padrão (TDD)
+### Fluxo padrao
 
-1. **Especificar** comportamento esperado (Given/When/Then em PR/issue).
-2. **Escrever teste que falha** representando o comportamento.
-3. **Implementar o mínimo** para o teste passar.
-4. **Refatorar** mantendo todos os testes verdes.
-5. **Validar cobertura** com `npm run test:coverage`.
+1. Especificar o comportamento esperado.
+2. Escrever um teste que represente o comportamento.
+3. Implementar o minimo para passar.
+4. Refatorar mantendo os testes verdes.
+5. Validar cobertura quando a mudanca for relevante.
 
-### Template rápido de especificação
+### Template rapido
 
 ```text
 Funcionalidade:
@@ -76,44 +71,41 @@ Contexto:
 Given:
 When:
 Then:
-Critérios de aceite:
+Criterios de aceite:
 ```
 
-### Comandos de uso rápido
+## Arquitetura
 
-```bash
-npm test
-npm run test:watch
-npm run test:coverage
-```
+O jogo e estruturado em torno de um **sistema de cidade e missoes**:
 
-## 🏗️ Arquitetura
+- **Mapa Principal:** cidade explorada pelo jogador com joystick.
+- **Locais:** pontos como Escola, Casa e Padaria.
+- **Missoes:** desafios educacionais relacionados a ingles.
+- **Progressao:** locais liberados conforme missoes sao concluidas.
+- **NPCs:** personagens que guiam o jogador e podem liberar objetivos no mapa.
 
-O jogo é estruturado em torno de um **sistema de cidades e missões**:
-
-- **Mapa Principal:** Cidade explorada pelo jogador com múltiplas áreas
-- **Áreas/Locais:** Diferentes bairros (Escola, Biblioteca, Parque, etc.) que funcionam como pontos de encontro
-- **Missões:** Cada local oferece desafios educacionais relacionados a inglês
-- **Progressão:** Sistema de níveis e recompensas (XP, moedas)
-
-### Stack Técnico
+### Stack Tecnico
 
 - React Native 0.81.5 + React 19.1.0
-- Expo 54.0.33 (iOS, Android, Web)
+- Expo 54.0.33
 - React Navigation 7.x
-- TypeScript (strict mode)
+- AsyncStorage
+- Jest + `@testing-library/react-native`
+- TypeScript configurado em modo strict, embora a base atual esteja em JavaScript
 
-## 🎮 Mechanics Principais
+## Mecanicas Principais
 
-1. **Navegação no Mapa:** Jogador se move em uma cidade 2D
-2. **Detecção de Colisão:** Entrar em um local inicia uma missão
-3. **Missões Gamificadas:** Completar desafios educacionais
-4. **Sistema de Recompensas:** Ganhar XP e moedas ao terminar
+1. **Navegacao no mapa:** jogador se move por uma cidade 2D.
+2. **Colisao:** o mapa usa objetos exportados do Tiled para bloquear movimento.
+3. **Entrada em locais:** ao entrar em uma area, o jogador pode iniciar uma missao.
+4. **Missoes gamificadas:** completar desafios educacionais marca progresso.
+5. **Desbloqueio:** concluir locais libera proximos estagios.
+6. **Objetivos no mapa:** apos licoes, o jogador pode coletar itens relacionados ao conteudo aprendido.
 
-Veja `AGENTS.md` para detalhes técnicos completos.
+Veja `AGENTS.md` para detalhes tecnicos completos.
 
-## 📚 Aprender Mais
+## Aprender Mais
 
 - [Expo documentation](https://docs.expo.dev/)
-- `AGENTS.md` - Guia completo para desenvolvedores IA
-- Inspecione `src/` para estrutura do código
+- `AGENTS.md` - guia tecnico completo para agentes e mantenedores
+- `src/` - codigo ativo do jogo

@@ -11,8 +11,8 @@ describe("Npc component", () => {
     const container = getByTestId("npc-box");
     const style = container.props.style;
 
-    expect(style.left).toBe(100);
-    expect(style.top).toBe(120);
+    expect(style.left).toBe(92);
+    expect(style.top).toBe(88);
   });
 });
 

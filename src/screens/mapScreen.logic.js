@@ -318,6 +318,28 @@ export function resolveActiveLessonMission({ lessonCompletions, completedLessonM
   return null;
 }
 
+export function resolveMageGuideAction({
+  hasVisitedSchoolToday,
+  latestCompletedLesson,
+  activeLessonMission,
+  latestCompletedLessonMission,
+  hasFinishedLatestLessonMission,
+}) {
+  if (!hasVisitedSchoolToday || !latestCompletedLesson) {
+    return "goToSchool";
+  }
+
+  if (activeLessonMission) {
+    return "offerMission";
+  }
+
+  if (latestCompletedLessonMission && hasFinishedLatestLessonMission) {
+    return "completedMission";
+  }
+
+  return "noMission";
+}
+
 export function buildLessonMissionCollectibles(mission, anchorPosition) {
   if (!mission) return [];
 
