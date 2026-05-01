@@ -9,6 +9,7 @@ import Player from "../components/Player";
 import Npc from "../components/Npc";
 import FloatingJoystick from "../components/FloatingJoystick";
 import PlayerDialog from "../components/PlayerDialog";
+import ColoredBalloon from "../components/ColoredBalloon";
 import {
     loadProgress,
     markSchoolVisited,
@@ -22,6 +23,7 @@ import {
 import {
     clamp,
     resolveMovementStep,
+    collidesWithAnyShape,
     calculateCurrentStage,
     selectObjectiveLocation,
     resolveLocationEntryAction,
@@ -30,6 +32,7 @@ import {
     getAabbRect,
     resolveActiveLessonMission,
     resolveMageGuideAction,
+    resolveMissionCollectiblePickup,
 } from "./mapScreen.logic";
 
 const victorianMapData = require("../../assets/lpc-victorian-preview-see-readme/lpc-victorian-preview/victorian-preview.json");
@@ -312,6 +315,7 @@ export default function MapScreen({ navigation }) {
     const [npcStates, setNpcStates] = useState(() => npcConfigs.map(buildInitialNpcState));
     const [objectiveOverrideId, setObjectiveOverrideId] = useState(null);
     const [collectedMissionItemIds, setCollectedMissionItemIds] = useState([]);
+    const [warnedWrongMissionItemIds, setWarnedWrongMissionItemIds] = useState([]);
     const [unlockedLessonMissionId, setUnlockedLessonMissionId] = useState(null);
     const dialogTimeoutRef = useRef(null);
     const npcDialogTimeoutRef = useRef(null);
@@ -534,16 +538,31 @@ export default function MapScreen({ navigation }) {
     }, [activeLessonMission, unlockedLessonMissionId]);
 
     const activeLessonMissionCollectibles = useMemo(
-        () => buildLessonMissionCollectibles(unlockedLessonMission, INITIAL_POSITION),
+        () =>
+            buildLessonMissionCollectibles(unlockedLessonMission, INITIAL_POSITION, {
+                worldWidth: WORLD_WIDTH,
+                worldHeight: WORLD_HEIGHT,
+                isAreaBlocked: (rect) =>
+                    collidesWithAnyShape(
+                        { x: rect.x, y: rect.y },
+                        collisionShapes,
+                        { width: rect.width, height: rect.height, offsetX: 0, offsetY: 0 }
+                    ),
+            }),
         [unlockedLessonMission]
+    );
+
+    const targetLessonMissionCollectibles = useMemo(
+        () => activeLessonMissionCollectibles.filter((collectible) => collectible.isTarget !== false),
+        [activeLessonMissionCollectibles]
     );
 
     const remainingLessonMissionCollectibles = useMemo(
         () =>
-            activeLessonMissionCollectibles.filter(
+            targetLessonMissionCollectibles.filter(
                 (collectible) => !collectedMissionItemIds.includes(collectible.id)
             ),
-        [activeLessonMissionCollectibles, collectedMissionItemIds]
+        [targetLessonMissionCollectibles, collectedMissionItemIds]
     );
 
     const latestCompletedLesson = useMemo(
@@ -581,6 +600,7 @@ export default function MapScreen({ navigation }) {
 
     useEffect(() => {
         setCollectedMissionItemIds([]);
+        setWarnedWrongMissionItemIds([]);
         setUnlockedLessonMissionId(null);
     }, [activeLessonMission?.missionId]);
 
@@ -596,6 +616,7 @@ export default function MapScreen({ navigation }) {
                     Array.from(new Set([...prev, buildDailyLessonMissionCompletionId(mission.missionId)]))
                 );
                 setCollectedMissionItemIds([]);
+                setWarnedWrongMissionItemIds([]);
                 setObjectiveOverrideId(null);
                 setUnlockedLessonMissionId(null);
                 showPlayerDialog(mission.completionMessage, { autoHideMs: 6000 });
@@ -811,7 +832,9 @@ export default function MapScreen({ navigation }) {
 
         const playerRect = getAabbRect(position, PLAYER_COLLISION_BOX);
         let nextCollectedIds = collectedMissionItemIds;
+        let nextWarnedWrongIds = warnedWrongMissionItemIds;
         let collectedSomething = false;
+        let warnedSomething = false;
 
         for (const collectible of activeLessonMissionCollectibles) {
             if (nextCollectedIds.includes(collectible.id)) continue;
@@ -822,7 +845,24 @@ export default function MapScreen({ navigation }) {
                 playerRect.y < collectible.y + collectible.height &&
                 playerRect.y + playerRect.height > collectible.y;
 
-            if (overlaps) {
+            const pickupAction = resolveMissionCollectiblePickup({
+                collectible,
+                overlaps,
+                collectedMissionItemIds: nextCollectedIds,
+                warnedWrongMissionItemIds: nextWarnedWrongIds,
+            });
+
+            if (pickupAction === "warnWrong") {
+                nextWarnedWrongIds = [...nextWarnedWrongIds, collectible.id];
+                warnedSomething = true;
+                showPlayerDialog(
+                    `Esse balao e ${collectible.colorLabel}. Procure baloes ${collectible.targetColorLabel}.`,
+                    { autoHideMs: 3500 }
+                );
+                continue;
+            }
+
+            if (pickupAction === "collect") {
                 nextCollectedIds = [...nextCollectedIds, collectible.id];
                 collectedSomething = true;
             }
@@ -832,7 +872,11 @@ export default function MapScreen({ navigation }) {
             setCollectedMissionItemIds(nextCollectedIds);
         }
 
-        const allCollected = activeLessonMissionCollectibles.every((collectible) =>
+        if (warnedSomething) {
+            setWarnedWrongMissionItemIds(nextWarnedWrongIds);
+        }
+
+        const allCollected = targetLessonMissionCollectibles.every((collectible) =>
             nextCollectedIds.includes(collectible.id)
         );
 
@@ -843,8 +887,11 @@ export default function MapScreen({ navigation }) {
         position,
         unlockedLessonMission,
         activeLessonMissionCollectibles,
+        targetLessonMissionCollectibles,
         collectedMissionItemIds,
+        warnedWrongMissionItemIds,
         finishActiveLessonMission,
+        showPlayerDialog,
     ]);
 
     // Detecta entrada nas areas de localizacao e abre modal quando permitido
@@ -1127,18 +1174,15 @@ export default function MapScreen({ navigation }) {
                                 top: collectible.y,
                                 width: collectible.width,
                                 height: collectible.height,
-                                borderRadius: 18,
-                                backgroundColor: collectible.color,
                                 justifyContent: "center",
                                 alignItems: "center",
-                                shadowColor: "#000",
-                                shadowOpacity: 0.18,
-                                shadowRadius: 4,
-                                shadowOffset: { width: 0, height: 2 },
-                                elevation: 3,
                             }}
                         >
-                            <Text style={{ fontSize: 18 }}>{collectible.emoji}</Text>
+                            <ColoredBalloon
+                                color={collectible.color}
+                                width={collectible.width}
+                                height={collectible.height}
+                            />
                         </View>
                     );
                 })}
@@ -1173,7 +1217,7 @@ export default function MapScreen({ navigation }) {
                 >
                     <Text style={{ color: "#B71C1C", fontWeight: "bold", fontSize: 13 }}>
                         {unlockedLessonMission.title}: {remainingLessonMissionCollectibles.length}/
-                        {activeLessonMissionCollectibles.length}
+                        {targetLessonMissionCollectibles.length}
                     </Text>
                 </View>
             )}

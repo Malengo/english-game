@@ -1,5 +1,5 @@
 // src/data/locationConfig.js
-// Configuração de localizações no mapa
+// Configuracao de localizacoes no mapa
 
 import { schoolColorsLesson } from "./schoolColorsLesson";
 
@@ -14,7 +14,7 @@ export const locations = [
     height: 80,
     screenRoute: "BakeryMission",
     stageRequired: 3,
-    description: "Aprenda vocabulário de padaria",
+    description: "Aprenda vocabulario de padaria",
   },
   {
     id: "school",
@@ -32,10 +32,10 @@ export const locations = [
     tutorial: true,
     lessonId: schoolColorsLesson.id,
     introMessages: [
-      "Bem-vindo à Escola! Aqui você vai aprender as cores em ingles.",
+      "Bem-vindo a Escola! Aqui voce vai aprender as cores em ingles.",
       "Ande pelo mapa, entre em locais para iniciar missoes e ganhe moedas e XP.",
       "Complete exercicios para desbloquear novas areas.",
-      "Toque em Continuar para começar a primeira licao de cores.",
+      "Toque em Continuar para comecar a primeira licao de cores.",
     ],
     description: "Primeira licao: cores em ingles",
   },
@@ -57,4 +57,3 @@ export const locations = [
 export const getLocationById = (id) => locations.find((loc) => loc.id === id);
 export const getLocationsByStage = (currentStage) =>
   locations.filter((loc) => loc.stageRequired <= currentStage);
-

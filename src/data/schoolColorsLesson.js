@@ -8,8 +8,8 @@ export const schoolColorsLesson = {
     {
       id: "apple",
       emoji: "🍎",
-      prompt: "Qual cor é a apple?",
-      helperText: "Apple significa maçã.",
+      prompt: "Qual cor e a apple?",
+      helperText: "Apple significa maca.",
       options: [
         { label: "Red", color: "#E53935" },
         { label: "Blue", color: "#1E88E5" },
@@ -22,8 +22,8 @@ export const schoolColorsLesson = {
     {
       id: "sky",
       emoji: "☁️",
-      prompt: "Qual cor é o sky?",
-      helperText: "Sky significa céu.",
+      prompt: "Qual cor e o sky?",
+      helperText: "Sky significa ceu.",
       options: [
         { label: "Yellow", color: "#FBC02D" },
         { label: "Blue", color: "#1E88E5" },
@@ -31,13 +31,13 @@ export const schoolColorsLesson = {
       ],
       correctIndex: 1,
       successMessage: "Muito bem! The sky is blue.",
-      tryAgainMessage: "Ainda não. Olhe para o céu outra vez.",
+      tryAgainMessage: "Ainda nao. Olhe para o ceu outra vez.",
     },
     {
       id: "banana",
       emoji: "🍌",
-      prompt: "Qual cor é a banana?",
-      helperText: "Banana é uma fruta amarela.",
+      prompt: "Qual cor e a banana?",
+      helperText: "Banana e uma fruta amarela.",
       options: [
         { label: "Purple", color: "#8E24AA" },
         { label: "Orange", color: "#FB8C00" },
@@ -49,4 +49,3 @@ export const schoolColorsLesson = {
     },
   ],
 };
-

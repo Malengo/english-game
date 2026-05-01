@@ -340,6 +340,23 @@ export function resolveMageGuideAction({
   return "noMission";
 }
 
+export function resolveMissionCollectiblePickup({
+  collectible,
+  overlaps,
+  collectedMissionItemIds = [],
+  warnedWrongMissionItemIds = [],
+}) {
+  if (!overlaps || !collectible || collectedMissionItemIds.includes(collectible.id)) {
+    return "none";
+  }
+
+  if (collectible.isTarget === false) {
+    return warnedWrongMissionItemIds.includes(collectible.id) ? "none" : "warnWrong";
+  }
+
+  return "collect";
+}
+
 export function buildLessonMissionCollectibles(mission, anchorPosition) {
   if (!mission) return [];
 

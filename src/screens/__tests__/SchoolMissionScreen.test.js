@@ -14,8 +14,13 @@ describe("SchoolMissionScreen", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     markLocationCompleted.mockResolvedValue({ completedLocationIds: ["school"] });
-    markLessonCompleted.mockResolvedValue({ lessonCompletions: [{ lessonId: schoolColorsLesson.id, locationId: "school" }] });
-    markSchoolVisited.mockResolvedValue({ completedLocationIds: ["school"], lastSchoolVisit: "2026-04-28T00:00:00.000Z" });
+    markLessonCompleted.mockResolvedValue({
+      lessonCompletions: [{ lessonId: schoolColorsLesson.id, locationId: "school" }],
+    });
+    markSchoolVisited.mockResolvedValue({
+      completedLocationIds: ["school"],
+      lastSchoolVisit: "2026-04-28T00:00:00.000Z",
+    });
   });
 
   function renderScreen(routeParams = {}) {
@@ -30,7 +35,7 @@ describe("SchoolMissionScreen", () => {
     const { getByText } = renderScreen({ autoStart: true });
 
     expect(getByText(/Vamos aprender as cores em ingles/i)).toBeTruthy();
-    expect(getByText("Qual cor é a apple?")).toBeTruthy();
+    expect(getByText("Qual cor e a apple?")).toBeTruthy();
   });
 
   it("mostra texto padrao quando autoStart nao for informado", () => {
@@ -50,18 +55,18 @@ describe("SchoolMissionScreen", () => {
     expect(markSchoolVisited).not.toHaveBeenCalled();
   });
 
-  it("avanca por todas as perguntas e conclui a lição", async () => {
+  it("avanca por todas as perguntas e conclui a licao", async () => {
     const { getByLabelText, getByText, navigation } = renderScreen({ autoStart: true });
 
     fireEvent.press(getByLabelText("Resposta Red"));
     fireEvent.press(getByText("Próxima pergunta"));
 
-    expect(getByText("Qual cor é o sky?")).toBeTruthy();
+    expect(getByText("Qual cor e o sky?")).toBeTruthy();
 
     fireEvent.press(getByLabelText("Resposta Blue"));
     fireEvent.press(getByText("Próxima pergunta"));
 
-    expect(getByText("Qual cor é a banana?")).toBeTruthy();
+    expect(getByText("Qual cor e a banana?")).toBeTruthy();
 
     fireEvent.press(getByLabelText("Resposta Yellow"));
     fireEvent.press(getByText("Concluir lição"));
@@ -84,4 +89,3 @@ describe("SchoolMissionScreen", () => {
     expect(navigation.goBack).toHaveBeenCalledTimes(1);
   });
 });
-

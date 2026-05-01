@@ -14,6 +14,7 @@ import {
   resolveNpcPatrolStep,
   resolveActiveLessonMission,
   resolveMageGuideAction,
+  resolveMissionCollectiblePickup,
   buildLessonMissionCollectibles,
 } from "../mapScreen.logic";
 
@@ -254,6 +255,38 @@ describe("mapScreen.logic", () => {
         hasFinishedLatestLessonMission: true,
       })
     ).toBe("completedMission");
+  });
+
+  it("resolve coleta ou aviso para balao da missao", () => {
+    expect(
+      resolveMissionCollectiblePickup({
+        collectible: { id: "red-1", isTarget: true },
+        overlaps: true,
+      })
+    ).toBe("collect");
+
+    expect(
+      resolveMissionCollectiblePickup({
+        collectible: { id: "blue-1", isTarget: false },
+        overlaps: true,
+      })
+    ).toBe("warnWrong");
+
+    expect(
+      resolveMissionCollectiblePickup({
+        collectible: { id: "blue-1", isTarget: false },
+        overlaps: true,
+        warnedWrongMissionItemIds: ["blue-1"],
+      })
+    ).toBe("none");
+
+    expect(
+      resolveMissionCollectiblePickup({
+        collectible: { id: "red-1", isTarget: true },
+        overlaps: true,
+        collectedMissionItemIds: ["red-1"],
+      })
+    ).toBe("none");
   });
 
   it("monta os baloes da missao com base no ponto de ancoragem", () => {
