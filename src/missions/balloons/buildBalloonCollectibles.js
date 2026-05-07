@@ -48,12 +48,13 @@ function shuffle(items, rng) {
 }
 
 export function buildBalloonCollectibles(mission, options = {}) {
-  const config = mission.balloonMission;
+  const config = mission?.spawnRules ?? mission?.balloonMission;
   if (!config) return [];
 
   const rng = typeof options.rng === "function" ? options.rng : Math.random;
   const colors = Array.isArray(config.colors) && config.colors.length > 0 ? config.colors : learnedColorOptions;
-  const targetColor = colors.find((color) => color.label === config.targetColorLabel) ?? colors[0];
+  const targetColorLabel = mission?.target?.colorLabel ?? config.targetColorLabel ?? colors[0]?.label;
+  const targetColor = colors.find((color) => color.label === targetColorLabel) ?? colors[0];
   const distractorColors = colors.filter((color) => color.label !== targetColor.label);
   const minCount = Math.max(1, config.minCount ?? 6);
   const maxCount = Math.max(minCount, config.maxCount ?? minCount);

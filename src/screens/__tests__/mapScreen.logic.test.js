@@ -292,10 +292,12 @@ describe("mapScreen.logic", () => {
   it("monta os baloes da missao com base no ponto de ancoragem", () => {
     const collectibles = buildLessonMissionCollectibles(
       {
-        collectibles: [
-          { id: "balloon-1", offsetX: 10, offsetY: 20, label: "Balao red" },
-          { id: "balloon-2", offsetX: -5, offsetY: 15, label: "Balao red" },
-        ],
+        spawnRules: {
+          collectibles: [
+            { id: "balloon-1", offsetX: 10, offsetY: 20, label: "Balao red" },
+            { id: "balloon-2", offsetX: -5, offsetY: 15, label: "Balao red" },
+          ],
+        },
       },
       { x: 100, y: 200 }
     );

@@ -14,8 +14,8 @@ describe("lessonMissionCatalog", () => {
     const targetBalloons = collectibles.filter((collectible) => collectible.isTarget);
     const wrongBalloons = collectibles.filter((collectible) => !collectible.isTarget);
 
-    expect(collectibles).toHaveLength(mission.balloonMission.minCount);
-    expect(targetBalloons).toHaveLength(mission.balloonMission.minTargetCount);
+    expect(collectibles).toHaveLength(mission.spawnRules.minCount);
+    expect(targetBalloons).toHaveLength(mission.spawnRules.minTargetCount);
     expect(wrongBalloons.length).toBeGreaterThan(0);
     expect(new Set(collectibles.map((collectible) => collectible.colorLabel)).size).toBeGreaterThan(1);
   });
@@ -27,13 +27,13 @@ describe("lessonMissionCatalog", () => {
       rng: () => 0.999,
     });
 
-    expect(collectibles).toHaveLength(mission.balloonMission.maxCount);
+    expect(collectibles).toHaveLength(mission.spawnRules.maxCount);
 
     for (const collectible of collectibles) {
-      expect(collectible.x).toBeGreaterThanOrEqual(mission.balloonMission.mapPadding);
-      expect(collectible.y).toBeGreaterThanOrEqual(mission.balloonMission.mapPadding);
-      expect(collectible.x + collectible.width).toBeLessThanOrEqual(800 - mission.balloonMission.mapPadding + 1);
-      expect(collectible.y + collectible.height).toBeLessThanOrEqual(600 - mission.balloonMission.mapPadding + 1);
+      expect(collectible.x).toBeGreaterThanOrEqual(mission.spawnRules.mapPadding);
+      expect(collectible.y).toBeGreaterThanOrEqual(mission.spawnRules.mapPadding);
+      expect(collectible.x + collectible.width).toBeLessThanOrEqual(800 - mission.spawnRules.mapPadding + 1);
+      expect(collectible.y + collectible.height).toBeLessThanOrEqual(600 - mission.spawnRules.mapPadding + 1);
     }
   });
 

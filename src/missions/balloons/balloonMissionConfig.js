@@ -9,12 +9,34 @@ export const learnedColorOptions = Array.from(
 );
 
 export const schoolColorsBalloonMission = {
-  targetColorLabel: "Red",
-  minCount: 8,
-  maxCount: 14,
-  minTargetCount: 3,
-  maxTargetCount: 6,
-  size: 40,
-  mapPadding: 96,
-  colors: learnedColorOptions,
+  id: "school-colors-red-balloons",
+  missionId: "school-colors-red-balloons",
+  type: "balloons",
+  target: {
+    colorLabel: "Red",
+  },
+  spawnRules: {
+    minCount: 8,
+    maxCount: 14,
+    minTargetCount: 3,
+    maxTargetCount: 6,
+    size: 40,
+    mapPadding: 96,
+    colors: learnedColorOptions,
+  },
+  completionRules: {
+    type: "collect-targets",
+    requireAllTargets: true,
+  },
+  feedbackRules: {
+    hudLabel: "Baloes red",
+    guideMessage:
+      "Muito bem! Voce aprendeu varias cores. Agora procure apenas os baloes red no mapa.",
+    completionMessage: "Perfeito! Voce coletou todos os baloes red.",
+    wrongCollectibleMessageTemplate:
+      "Esse balao e {colorLabel}. Procure baloes {targetColorLabel}.",
+  },
+  reward: {
+    text: "Red balloons",
+  },
 };

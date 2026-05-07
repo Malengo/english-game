@@ -299,6 +299,15 @@ function buildFallbackRect(location) {
     };
 }
 
+function formatMissionMessage(template, data) {
+    if (typeof template !== "string" || !template.trim()) return "";
+
+    return template.replace(/\{(\w+)}/g, (_match, key) => {
+        const value = data?.[key];
+        return value === undefined || value === null ? "" : String(value);
+    });
+}
+
 export default function MapScreen({ navigation }) {
     const { width: viewportWidth, height: viewportHeight } = useWindowDimensions();
     const [position, setPosition] = useState(INITIAL_POSITION);
@@ -621,7 +630,13 @@ export default function MapScreen({ navigation }) {
                 setWarnedWrongMissionItemIds([]);
                 setObjectiveOverrideId(null);
                 setUnlockedLessonMissionId(null);
-                showPlayerDialog(mission.completionMessage, { autoHideMs: 6000 });
+                const completionMessage =
+                    mission.feedbackRules?.completionMessage ?? "Missao concluida!";
+                const rewardText = mission.reward?.text;
+                const fullMessage = rewardText
+                    ? `${completionMessage}\nRecompensa: ${rewardText}`
+                    : completionMessage;
+                showPlayerDialog(fullMessage, { autoHideMs: 6000 });
             } finally {
                 missionCompletionLockRef.current = false;
             }
@@ -708,7 +723,11 @@ export default function MapScreen({ navigation }) {
                                 }
 
                                 if (mageGuideAction === "offerMission" && activeLessonMission) {
-                                    showNpcDialog(activeLessonMission.guideMessage, {
+                                    const guideMessage =
+                                        activeLessonMission.feedbackRules?.guideMessage ??
+                                        activeLessonMission.prompt ??
+                                        "Vamos iniciar a missao.";
+                                    showNpcDialog(guideMessage, {
                                         anchorX: d.anchorX,
                                         anchorY: d.anchorY,
                                         npcId: d.npcId,
@@ -719,7 +738,10 @@ export default function MapScreen({ navigation }) {
                                 }
 
                                 if (mageGuideAction === "completedMission" && latestCompletedLessonMission) {
-                                    showNpcDialog(latestCompletedLessonMission.completionMessage, {
+                                    const completionMessage =
+                                        latestCompletedLessonMission.feedbackRules?.completionMessage ??
+                                        "Missao concluida!";
+                                    showNpcDialog(completionMessage, {
                                         anchorX: d.anchorX,
                                         anchorY: d.anchorY,
                                         npcId: d.npcId,
@@ -857,10 +879,15 @@ export default function MapScreen({ navigation }) {
             if (pickupAction === "warnWrong") {
                 nextWarnedWrongIds = [...nextWarnedWrongIds, collectible.id];
                 warnedSomething = true;
-                showPlayerDialog(
-                    `Esse balao e ${collectible.colorLabel}. Procure baloes ${collectible.targetColorLabel}.`,
-                    { autoHideMs: 3500 }
-                );
+                const warningTemplate =
+                    unlockedLessonMission?.feedbackRules?.wrongCollectibleMessageTemplate;
+                const warningMessage =
+                    formatMissionMessage(warningTemplate, {
+                        colorLabel: collectible.colorLabel,
+                        targetColorLabel: collectible.targetColorLabel,
+                    }) ||
+                    `Esse balao e ${collectible.colorLabel}. Procure baloes ${collectible.targetColorLabel}.`;
+                showPlayerDialog(warningMessage, { autoHideMs: 3500 });
                 continue;
             }
 
@@ -940,9 +967,13 @@ export default function MapScreen({ navigation }) {
 
     const directionHud = useMemo(() => {
         const missionTarget = remainingLessonMissionCollectibles[0] ?? null;
+        const missionLabel =
+            unlockedLessonMission?.feedbackRules?.hudLabel ??
+            unlockedLessonMission?.title ??
+            "Missao da licao";
         const target = missionTarget
             ? {
-                  name: unlockedLessonMission?.title ?? "Missão da lição",
+                  name: missionLabel,
                   center: { x: missionTarget.x + missionTarget.width / 2, y: missionTarget.y + missionTarget.height / 2 },
                   triggerRect: { width: missionTarget.width, height: missionTarget.height },
               }
@@ -1211,7 +1242,7 @@ export default function MapScreen({ navigation }) {
                     }}
                 >
                     <Text style={{ color: "#B71C1C", fontWeight: "bold", fontSize: 13 }}>
-                        {unlockedLessonMission.title}: {remainingLessonMissionCollectibles.length}/
+                        {unlockedLessonMission.feedbackRules?.hudLabel ?? unlockedLessonMission.title}: {remainingLessonMissionCollectibles.length}/
                         {targetLessonMissionCollectibles.length}
                     </Text>
                 </View>

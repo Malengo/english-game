@@ -365,7 +365,9 @@ export function buildLessonMissionCollectibles(mission, anchorPosition) {
     y: Number.isFinite(anchorPosition?.y) ? anchorPosition.y : 0,
   };
 
-  return (mission.collectibles ?? []).map((collectible, index) => ({
+  const collectibles = mission.spawnRules?.collectibles ?? mission.collectibles ?? [];
+
+  return collectibles.map((collectible, index) => ({
     ...collectible,
     x: origin.x + (collectible.offsetX ?? 0),
     y: origin.y + (collectible.offsetY ?? 0),

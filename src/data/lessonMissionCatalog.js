@@ -2,19 +2,27 @@ import { schoolColorsLesson } from "./schoolColorsLesson";
 import { schoolColorsBalloonMission } from "../missions/balloons/balloonMissionConfig";
 import { buildBalloonCollectibles } from "../missions/balloons/buildBalloonCollectibles";
 
+function normalizeMission(mission) {
+  if (!mission) return mission;
+
+  const id = mission.id ?? mission.missionId;
+  if (!id) return mission;
+
+  return {
+    ...mission,
+    id,
+    missionId: mission.missionId ?? id,
+  };
+}
+
 export const lessonMissionCatalog = [
-  {
-    missionId: "school-colors-red-balloons",
+  normalizeMission({
+    ...schoolColorsBalloonMission,
     lessonId: schoolColorsLesson.id,
     lessonLabel: "colors",
     title: "Baloes red",
     prompt: "Encontre os baloes red no mapa",
-    guideMessage:
-      "Muito bem! Voce aprendeu varias cores. Agora procure apenas os baloes red no mapa.",
-    completionMessage: "Perfeito! Voce coletou todos os baloes red.",
-    rewardText: "Red balloons",
-    balloonMission: schoolColorsBalloonMission,
-  },
+  }),
 ];
 
 export function getLessonMissionByLessonId(lessonId) {
@@ -24,7 +32,7 @@ export function getLessonMissionByLessonId(lessonId) {
 export function buildLessonMissionCollectibles(mission, anchorPosition, options = {}) {
   if (!mission) return [];
 
-  if (mission.balloonMission) {
+  if (mission.type === "balloons") {
     return buildBalloonCollectibles(mission, options);
   }
 
@@ -33,7 +41,9 @@ export function buildLessonMissionCollectibles(mission, anchorPosition, options 
     y: Number.isFinite(anchorPosition?.y) ? anchorPosition.y : 0,
   };
 
-  return (mission.collectibles ?? []).map((collectible, index) => ({
+  const collectibles = mission.spawnRules?.collectibles ?? mission.collectibles ?? [];
+
+  return collectibles.map((collectible, index) => ({
     ...collectible,
     type: collectible.type ?? "generic",
     x: origin.x + (collectible.offsetX ?? 0),
