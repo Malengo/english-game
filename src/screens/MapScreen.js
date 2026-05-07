@@ -5,7 +5,7 @@ import {SafeAreaView} from 'react-native-safe-area-context/src';
 import { useFocusEffect } from "@react-navigation/native";
 import { locations } from "../data/locationConfig";
 import { npcConfigs } from "../data/npcConfig";
-import { lessonMissionCatalog, buildLessonMissionCollectibles, getLessonMissionByLessonId } from "../data/lessonMissionCatalog";
+import { lessonMissionCatalog, buildLessonMissionCollectibles, getLatestLessonMissionForLesson, getLessonMissionsByLessonId } from "../data/lessonMissionCatalog";
 import Player from "../components/Player";
 import Npc from "../components/Npc";
 import FloatingJoystick from "../components/FloatingJoystick";
@@ -308,6 +308,10 @@ function formatMissionMessage(template, data) {
     });
 }
 
+function isMapLessonMission(mission) {
+    return mission?.type === "balloons" || mission?.type === "collectibles";
+}
+
 export default function MapScreen({ navigation }) {
     const { width: viewportWidth, height: viewportHeight } = useWindowDimensions();
     const [position, setPosition] = useState(INITIAL_POSITION);
@@ -543,6 +547,11 @@ export default function MapScreen({ navigation }) {
         [todayLessonCompletions, todayCompletedLessonMissionIds]
     );
 
+    const activeLessonMissionList = useMemo(
+        () => (activeLessonMission?.lessonId ? getLessonMissionsByLessonId(activeLessonMission.lessonId) : []),
+        [activeLessonMission]
+    );
+
     const unlockedLessonMission = useMemo(() => {
         if (!activeLessonMission || !unlockedLessonMissionId) return null;
         return activeLessonMission.missionId === unlockedLessonMissionId ? activeLessonMission : null;
@@ -582,7 +591,7 @@ export default function MapScreen({ navigation }) {
     );
 
     const latestCompletedLessonMission = useMemo(
-        () => (latestCompletedLesson ? getLessonMissionByLessonId(latestCompletedLesson.lessonId) ?? null : null),
+        () => (latestCompletedLesson ? getLatestLessonMissionForLesson(latestCompletedLesson.lessonId) ?? null : null),
         [latestCompletedLesson]
     );
 
@@ -723,17 +732,43 @@ export default function MapScreen({ navigation }) {
                                 }
 
                                 if (mageGuideAction === "offerMission" && activeLessonMission) {
+                                    const missionIndex = activeLessonMissionList.findIndex(
+                                        (mission) => mission.missionId === activeLessonMission.missionId
+                                    );
+                                    const missionSuffix =
+                                        activeLessonMissionList.length > 1 && missionIndex >= 0
+                                            ? ` (Missao ${missionIndex + 1}/${activeLessonMissionList.length})`
+                                            : "";
                                     const guideMessage =
-                                        activeLessonMission.feedbackRules?.guideMessage ??
-                                        activeLessonMission.prompt ??
-                                        "Vamos iniciar a missao.";
+                                        `${
+                                            activeLessonMission.feedbackRules?.guideMessage ??
+                                            activeLessonMission.prompt ??
+                                            "Vamos iniciar a missao."
+                                        }${missionSuffix}`;
+
+                                    if (isMapLessonMission(activeLessonMission)) {
+                                        showNpcDialog(guideMessage, {
+                                            anchorX: d.anchorX,
+                                            anchorY: d.anchorY,
+                                            npcId: d.npcId,
+                                            autoHideMs: 8000,
+                                        });
+                                        setUnlockedLessonMissionId(activeLessonMission.missionId);
+                                        return;
+                                    }
+
                                     showNpcDialog(guideMessage, {
                                         anchorX: d.anchorX,
                                         anchorY: d.anchorY,
                                         npcId: d.npcId,
-                                        autoHideMs: 8000,
+                                        ctaLabel: "Iniciar missao",
+                                        onPressCta: () => {
+                                            setUnlockedLessonMissionId(null);
+                                            navigation.navigate("LessonMission", {
+                                                missionId: activeLessonMission.missionId,
+                                            });
+                                        },
                                     });
-                                    setUnlockedLessonMissionId(activeLessonMission.missionId);
                                     return;
                                 }
 
@@ -793,10 +828,12 @@ export default function MapScreen({ navigation }) {
         showNpcDialog,
         hideNpcDialog,
         activeLessonMission,
+        activeLessonMissionList,
         latestCompletedLesson,
         latestCompletedLessonMission,
         hasFinishedLatestLessonMission,
         mageGuideAction,
+        navigation,
     ]);
 
     const playerCenterX = position.x + PLAYER_HITBOX / 2;
@@ -850,6 +887,7 @@ export default function MapScreen({ navigation }) {
         playerHeadX,
         playerHeadY
     );
+
 
     useEffect(() => {
         if (!unlockedLessonMission || !activeLessonMissionCollectibles.length) return;
@@ -1012,22 +1050,22 @@ export default function MapScreen({ navigation }) {
                     ➤
                 </Text>
                 <View
-                    style={{
-                        position: "absolute",
-                        top: 42,
-                        backgroundColor: "rgba(0,0,0,0.6)",
-                        paddingHorizontal: 8,
-                        paddingVertical: 4,
-                        borderRadius: 8,
-                    }}
+                style={{
+                    position: "absolute",
+                    top: 42,
+                    backgroundColor: "rgba(0,0,0,0.6)",
+                    paddingHorizontal: 8,
+                    paddingVertical: 4,
+                    borderRadius: 8,
+                }}
                 >
-                    <Text
-                        style={{ color: "white", fontSize: 12 }}
-                        numberOfLines={1}
-                        ellipsizeMode="tail"
-                    >
-                        {target.name}
-                    </Text>
+                <Text
+                    style={{ color: "white", fontSize: 12 }}
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
+                >
+                    {target.name}
+                </Text>
                 </View>
             </View>
         );

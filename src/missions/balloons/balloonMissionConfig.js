@@ -40,3 +40,21 @@ export const schoolColorsBalloonMission = {
     text: "Red balloons",
   },
 };
+
+export const schoolColorsBlueBalloonMission = {
+  ...schoolColorsBalloonMission,
+  id: "school-colors-blue-balloons",
+  missionId: "school-colors-blue-balloons",
+  target: {
+    colorLabel: "Blue",
+  },
+  feedbackRules: {
+    ...schoolColorsBalloonMission.feedbackRules,
+    hudLabel: "Baloes blue",
+    guideMessage: "Agora encontre apenas os baloes blue!",
+    completionMessage: "Excelente! Voce encontrou todos os baloes blue.",
+  },
+  reward: {
+    text: "Sticker: blue-balloon",
+  },
+};

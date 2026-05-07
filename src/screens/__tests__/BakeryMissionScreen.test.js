@@ -26,7 +26,7 @@ describe("BakeryMissionScreen", () => {
   it("volta ao mapa ao pressionar botao", () => {
     const { getByText, navigation } = renderScreen();
 
-    fireEvent.press(getByText("Voltar ao mapa"));
+    fireEvent.press(getByText("Voltar sem concluir"));
 
     expect(navigation.goBack).toHaveBeenCalledTimes(1);
   });

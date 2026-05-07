@@ -230,6 +230,21 @@ describe("mapScreen.logic", () => {
     ).toEqual({ lessonId: "lesson-b", missionId: "mission-b" });
   });
 
+  it("prioriza a primeira missao pendente da licao", () => {
+    const lessonMissionCatalog = [
+      { lessonId: "lesson-a", missionId: "mission-a", order: 1 },
+      { lessonId: "lesson-a", missionId: "mission-b", order: 2 },
+    ];
+
+    expect(
+      resolveActiveLessonMission({
+        lessonCompletions: [{ lessonId: "lesson-a" }],
+        completedLessonMissionIds: ["mission-a"],
+        lessonMissionCatalog,
+      })
+    ).toEqual({ lessonId: "lesson-a", missionId: "mission-b", order: 2 });
+  });
+
   it("resolve acao do mage para o ciclo diario", () => {
     expect(
       resolveMageGuideAction({

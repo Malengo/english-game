@@ -2,6 +2,8 @@
 // Configuracao de localizacoes no mapa
 
 import { schoolColorsLesson } from "./schoolColorsLesson";
+import { bakeryFoodsLesson } from "./bakeryFoodsLesson";
+import { houseObjectsLesson } from "./houseObjectsLesson";
 
 export const locations = [
   {
@@ -14,6 +16,7 @@ export const locations = [
     height: 80,
     screenRoute: "BakeryMission",
     stageRequired: 3,
+    lessonId: bakeryFoodsLesson.id,
     description: "Aprenda vocabulario de padaria",
   },
   {
@@ -50,6 +53,7 @@ export const locations = [
     screenRoute: "HouseMission",
     stageRequired: 2,
     autoStartOnEnter: false,
+    lessonId: houseObjectsLesson.id,
     description: "Licao da casa: objetos e comodos em ingles",
   },
 ];

@@ -308,10 +308,14 @@ export function resolveActiveLessonMission({ lessonCompletions, completedLessonM
 
   for (let index = completions.length - 1; index >= 0; index -= 1) {
     const completion = completions[index];
-    const mission = catalog.find((entry) => entry.lessonId === completion?.lessonId);
+    const lessonMissions = catalog
+      .filter((entry) => entry.lessonId === completion?.lessonId)
+      .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
 
-    if (mission && !completedMissionIds.has(mission.missionId)) {
-      return mission;
+    for (const mission of lessonMissions) {
+      if (mission && !completedMissionIds.has(mission.missionId)) {
+        return mission;
+      }
     }
   }
 
@@ -378,4 +382,3 @@ export function buildLessonMissionCollectibles(mission, anchorPosition) {
 }
 
 void buildLessonMissionCollectibles;
-
