@@ -1,10 +1,6 @@
 // src/data/locationConfig.js
 // Configuracao de localizacoes no mapa
 
-import { schoolColorsLesson } from "./schoolColorsLesson";
-import { bakeryFoodsLesson } from "./bakeryFoodsLesson";
-import { houseObjectsLesson } from "./houseObjectsLesson";
-
 export const locations = [
   {
     id: "bakery",
@@ -16,7 +12,7 @@ export const locations = [
     height: 80,
     screenRoute: "BakeryMission",
     stageRequired: 3,
-    lessonId: bakeryFoodsLesson.id,
+    lessonId: "bakery-foods-lesson",
     description: "Aprenda vocabulario de padaria",
   },
   {
@@ -33,7 +29,7 @@ export const locations = [
     isFirstLocation: true,
     autoStartOnEnter: true,
     tutorial: true,
-    lessonId: schoolColorsLesson.id,
+    lessonId: "school-colors-lesson",
     introMessages: [
       "Bem-vindo a Escola! Aqui voce vai aprender as cores em ingles.",
       "Ande pelo mapa, entre em locais para iniciar missoes e ganhe moedas e XP.",
@@ -53,7 +49,7 @@ export const locations = [
     screenRoute: "HouseMission",
     stageRequired: 2,
     autoStartOnEnter: false,
-    lessonId: houseObjectsLesson.id,
+    lessonId: "house-objects-lesson",
     description: "Licao da casa: objetos e comodos em ingles",
   },
 ];

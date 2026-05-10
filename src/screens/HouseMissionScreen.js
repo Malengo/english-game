@@ -1,23 +1,26 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { View, Text, TouchableOpacity, ScrollView } from "react-native";
 import { markLocationCompleted, markLessonCompleted } from "../utils/progressStorage";
-import { houseObjectsLesson } from "../data/houseObjectsLesson";
+import { getFirstLessonForLocation, getLessonById, getNextLessonInLocation } from "../data/lessonCatalog";
+
+const LOCATION_ID = "house";
 
 export default function HouseMissionScreen({ navigation, route }) {
   const autoStart = route?.params?.autoStart;
-  const lessonId = route?.params?.lessonId ?? houseObjectsLesson.id;
+  const lessonId = route?.params?.lessonId ?? getFirstLessonForLocation(LOCATION_ID)?.id;
+  const lesson = useMemo(() => getLessonById(lessonId), [lessonId]);
   const [questionIndex, setQuestionIndex] = useState(0);
   const [selectedOptionIndex, setSelectedOptionIndex] = useState(null);
   const [isAnswerCorrect, setIsAnswerCorrect] = useState(false);
-  const [feedbackMessage, setFeedbackMessage] = useState(houseObjectsLesson.introMessage);
+  const [feedbackMessage, setFeedbackMessage] = useState(lesson?.introMessage ?? "");
   const [isCompleting, setIsCompleting] = useState(false);
 
-  const questions = houseObjectsLesson.questions;
+  const questions = lesson?.questions ?? [];
   const currentQuestion = questions[questionIndex];
   const isLastQuestion = questionIndex === questions.length - 1;
 
   const handleSelectOption = (optionIndex) => {
-    if (isAnswerCorrect || isCompleting) return;
+    if (isAnswerCorrect || isCompleting || !currentQuestion) return;
 
     setSelectedOptionIndex(optionIndex);
 
@@ -31,7 +34,7 @@ export default function HouseMissionScreen({ navigation, route }) {
   };
 
   const handleNextQuestion = () => {
-    if (!isAnswerCorrect || isCompleting) return;
+    if (!isAnswerCorrect || isCompleting || !lesson) return;
 
     if (isLastQuestion) {
       void handleCompleteMission();
@@ -42,22 +45,49 @@ export default function HouseMissionScreen({ navigation, route }) {
     setQuestionIndex(nextQuestionIndex);
     setSelectedOptionIndex(null);
     setIsAnswerCorrect(false);
-    setFeedbackMessage(houseObjectsLesson.introMessage);
+    setFeedbackMessage(lesson.introMessage);
   };
 
   const handleCompleteMission = async () => {
-    if (isCompleting) return;
+    if (isCompleting || !lesson) return;
 
     setIsCompleting(true);
 
     try {
-      await markLocationCompleted("house");
-      await markLessonCompleted({ lessonId, locationId: "house" });
+      await markLocationCompleted(LOCATION_ID);
+      await markLessonCompleted({ lessonId: lesson.id, locationId: LOCATION_ID });
+
+      const nextLesson = getNextLessonInLocation(LOCATION_ID, lesson.id);
+      if (nextLesson) {
+        navigation.replace("HouseMission", {
+          autoStart: true,
+          locationId: LOCATION_ID,
+          lessonId: nextLesson.id,
+        });
+        return;
+      }
+
       navigation.goBack();
     } catch (_error) {
       setIsCompleting(false);
     }
   };
+
+  if (!lesson || !currentQuestion) {
+    return (
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#FFF3E0", padding: 20 }}>
+        <Text style={{ fontSize: 20, fontWeight: "bold", marginBottom: 12 }}>Licao nao encontrada</Text>
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          accessibilityRole="button"
+          accessibilityLabel="Voltar ao mapa"
+          style={{ backgroundColor: "#FF7043", borderRadius: 10, paddingVertical: 12, paddingHorizontal: 24 }}
+        >
+          <Text style={{ color: "white", fontWeight: "bold", fontSize: 16 }}>Voltar ao mapa</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
 
   return (
     <View style={{ flex: 1, backgroundColor: "#FFF3E0" }}>
@@ -65,46 +95,20 @@ export default function HouseMissionScreen({ navigation, route }) {
         <View style={{ backgroundColor: "white", borderRadius: 24, padding: 20, borderWidth: 3, borderColor: "#FFB300" }}>
           <Text style={{ fontSize: 52, marginBottom: 10, textAlign: "center" }}>🏠</Text>
           <Text style={{ fontSize: 28, fontWeight: "bold", marginBottom: 8, textAlign: "center", color: "#E65100" }}>
-            {houseObjectsLesson.title}
+            {lesson.title}
           </Text>
           <Text style={{ fontSize: 16, color: "#444", textAlign: "center", lineHeight: 22, marginBottom: 14 }}>
-            {autoStart
-              ? "Licao iniciada! Vamos aprender os objetos da casa em ingles."
-              : "Bem-vindo a Casa!"}
+            {autoStart ? "Licao iniciada! Continue a trilha da Casa." : "Bem-vindo a Casa!"}
           </Text>
 
-          <View
-            style={{
-              alignSelf: "center",
-              backgroundColor: "#FFF3CD",
-              borderRadius: 999,
-              paddingHorizontal: 14,
-              paddingVertical: 6,
-              marginBottom: 18,
-            }}
-          >
-            <Text style={{ color: "#8A5A00", fontWeight: "bold" }}>
-              Pergunta {questionIndex + 1} de {questions.length}
-            </Text>
+          <View style={{ alignSelf: "center", backgroundColor: "#FFF3CD", borderRadius: 999, paddingHorizontal: 14, paddingVertical: 6, marginBottom: 18 }}>
+            <Text style={{ color: "#8A5A00", fontWeight: "bold" }}>Pergunta {questionIndex + 1} de {questions.length}</Text>
           </View>
 
-          <View
-            style={{
-              backgroundColor: "#F7F9FC",
-              borderRadius: 20,
-              padding: 18,
-              borderWidth: 2,
-              borderColor: "#D8E2EC",
-              marginBottom: 16,
-            }}
-          >
+          <View style={{ backgroundColor: "#F7F9FC", borderRadius: 20, padding: 18, borderWidth: 2, borderColor: "#D8E2EC", marginBottom: 16 }}>
             <Text style={{ fontSize: 42, textAlign: "center", marginBottom: 8 }}>{currentQuestion.emoji}</Text>
-            <Text style={{ fontSize: 22, fontWeight: "bold", textAlign: "center", color: "#263238", marginBottom: 6 }}>
-              {currentQuestion.prompt}
-            </Text>
-            <Text style={{ fontSize: 15, textAlign: "center", color: "#607D8B", lineHeight: 22 }}>
-              {currentQuestion.helperText}
-            </Text>
+            <Text style={{ fontSize: 22, fontWeight: "bold", textAlign: "center", color: "#263238", marginBottom: 6 }}>{currentQuestion.prompt}</Text>
+            <Text style={{ fontSize: 15, textAlign: "center", color: "#607D8B", lineHeight: 22 }}>{currentQuestion.helperText}</Text>
           </View>
 
           <View style={{ marginBottom: 16 }}>
@@ -133,36 +137,15 @@ export default function HouseMissionScreen({ navigation, route }) {
                     marginBottom: 12,
                   }}
                 >
-                  <View
-                    style={{
-                      width: 26,
-                      height: 26,
-                      borderRadius: 13,
-                      backgroundColor: option.color,
-                      marginRight: 14,
-                    }}
-                  />
+                  <View style={{ width: 26, height: 26, borderRadius: 13, backgroundColor: option.color, marginRight: 14 }} />
                   <Text style={{ fontSize: 18, fontWeight: "bold", color: "#263238" }}>{option.label}</Text>
-                  {isSuccessSelection && <Text style={{ marginLeft: "auto", fontSize: 18 }}>✅</Text>}
-                  {isWrongSelection && <Text style={{ marginLeft: "auto", fontSize: 18 }}>❌</Text>}
                 </TouchableOpacity>
               );
             })}
           </View>
 
-          <View
-            style={{
-              backgroundColor: isAnswerCorrect ? "#E8F5E9" : selectedOptionIndex === null ? "#E3F2FD" : "#FFF3E0",
-              borderRadius: 16,
-              padding: 14,
-              marginBottom: 18,
-              borderWidth: 1,
-              borderColor: isAnswerCorrect ? "#A5D6A7" : selectedOptionIndex === null ? "#90CAF9" : "#FFCC80",
-            }}
-          >
-            <Text style={{ textAlign: "center", color: "#37474F", fontSize: 15, lineHeight: 21 }}>
-              {feedbackMessage}
-            </Text>
+          <View style={{ backgroundColor: isAnswerCorrect ? "#E8F5E9" : selectedOptionIndex === null ? "#E3F2FD" : "#FFF3E0", borderRadius: 16, padding: 14, marginBottom: 18, borderWidth: 1, borderColor: isAnswerCorrect ? "#A5D6A7" : selectedOptionIndex === null ? "#90CAF9" : "#FFCC80" }}>
+            <Text style={{ textAlign: "center", color: "#37474F", fontSize: 15, lineHeight: 21 }}>{feedbackMessage}</Text>
           </View>
 
           {isAnswerCorrect && (
@@ -171,12 +154,7 @@ export default function HouseMissionScreen({ navigation, route }) {
               accessibilityRole="button"
               accessibilityLabel={isLastQuestion ? "Concluir licao da casa" : "Ir para a proxima pergunta"}
               disabled={isCompleting}
-              style={{
-                backgroundColor: isCompleting ? "#BDBDBD" : "#FF7043",
-                borderRadius: 16,
-                paddingVertical: 14,
-                alignItems: "center",
-              }}
+              style={{ backgroundColor: isCompleting ? "#BDBDBD" : "#FF7043", borderRadius: 16, paddingVertical: 14, alignItems: "center" }}
             >
               <Text style={{ color: "white", fontWeight: "bold", fontSize: 16 }}>
                 {isCompleting ? "Concluindo..." : isLastQuestion ? "Concluir licao" : "Proxima pergunta"}
@@ -184,12 +162,7 @@ export default function HouseMissionScreen({ navigation, route }) {
             </TouchableOpacity>
           )}
 
-          <TouchableOpacity
-            onPress={() => navigation.goBack()}
-            accessibilityRole="button"
-            accessibilityLabel="Voltar sem concluir"
-            style={{ marginTop: 12, paddingVertical: 10, alignItems: "center" }}
-          >
+          <TouchableOpacity onPress={() => navigation.goBack()} accessibilityRole="button" accessibilityLabel="Voltar sem concluir" style={{ marginTop: 12, paddingVertical: 10, alignItems: "center" }}>
             <Text style={{ color: "#6D4C41", fontSize: 14, fontWeight: "bold" }}>Voltar sem concluir</Text>
           </TouchableOpacity>
         </View>

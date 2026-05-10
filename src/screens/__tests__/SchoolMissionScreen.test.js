@@ -24,7 +24,7 @@ describe("SchoolMissionScreen", () => {
   });
 
   function renderScreen(routeParams = {}) {
-    const navigation = { goBack: jest.fn() };
+    const navigation = { goBack: jest.fn(), replace: jest.fn() };
     const route = { params: routeParams };
 
     const utils = render(<SchoolMissionScreen navigation={navigation} route={route} />);
@@ -34,7 +34,7 @@ describe("SchoolMissionScreen", () => {
   it("mostra o tutorial de cores quando autoStart for true", () => {
     const { getByText } = renderScreen({ autoStart: true });
 
-    expect(getByText(/Vamos aprender as cores em ingles/i)).toBeTruthy();
+    expect(getByText(/Continue a trilha da Escola/i)).toBeTruthy();
     expect(getByText("Qual cor e a apple?")).toBeTruthy();
   });
 
@@ -50,32 +50,36 @@ describe("SchoolMissionScreen", () => {
     fireEvent.press(getByLabelText("Resposta Blue"));
 
     expect(getByText("Quase! Tente outra vez.")).toBeTruthy();
-    expect(queryByText("Próxima pergunta")).toBeNull();
+    expect(queryByText("Proxima pergunta")).toBeNull();
     expect(markLocationCompleted).not.toHaveBeenCalled();
     expect(markSchoolVisited).not.toHaveBeenCalled();
   });
 
-  it("avanca por todas as perguntas e conclui a licao", async () => {
+  it("avanca por todas as perguntas e vai para a proxima licao da escola", async () => {
     const { getByLabelText, getByText, navigation } = renderScreen({ autoStart: true });
 
     fireEvent.press(getByLabelText("Resposta Red"));
-    fireEvent.press(getByText("Próxima pergunta"));
+    fireEvent.press(getByText("Proxima pergunta"));
 
     expect(getByText("Qual cor e o sky?")).toBeTruthy();
 
     fireEvent.press(getByLabelText("Resposta Blue"));
-    fireEvent.press(getByText("Próxima pergunta"));
+    fireEvent.press(getByText("Proxima pergunta"));
 
     expect(getByText("Qual cor e a banana?")).toBeTruthy();
 
     fireEvent.press(getByLabelText("Resposta Yellow"));
-    fireEvent.press(getByText("Concluir lição"));
+    fireEvent.press(getByText("Concluir licao"));
 
     await waitFor(() => {
       expect(markLocationCompleted).toHaveBeenCalledWith("school");
       expect(markLessonCompleted).toHaveBeenCalledWith({ lessonId: schoolColorsLesson.id, locationId: "school" });
       expect(markSchoolVisited).toHaveBeenCalledTimes(1);
-      expect(navigation.goBack).toHaveBeenCalledTimes(1);
+      expect(navigation.replace).toHaveBeenCalledWith("SchoolMission", {
+        autoStart: true,
+        locationId: "school",
+        lessonId: "school-classroom-lesson",
+      });
     });
   });
 
@@ -89,3 +93,4 @@ describe("SchoolMissionScreen", () => {
     expect(navigation.goBack).toHaveBeenCalledTimes(1);
   });
 });
+

@@ -1,23 +1,26 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { View, Text, TouchableOpacity, ScrollView } from "react-native";
 import { markLocationCompleted, markSchoolVisited, markLessonCompleted } from "../utils/progressStorage";
-import { schoolColorsLesson } from "../data/schoolColorsLesson";
+import { getFirstLessonForLocation, getLessonById, getNextLessonInLocation } from "../data/lessonCatalog";
+
+const LOCATION_ID = "school";
 
 export default function SchoolMissionScreen({ navigation, route }) {
   const autoStart = route?.params?.autoStart;
-  const lessonId = route?.params?.lessonId ?? schoolColorsLesson.id;
+  const lessonId = route?.params?.lessonId ?? getFirstLessonForLocation(LOCATION_ID)?.id;
+  const lesson = useMemo(() => getLessonById(lessonId), [lessonId]);
   const [questionIndex, setQuestionIndex] = useState(0);
   const [selectedOptionIndex, setSelectedOptionIndex] = useState(null);
   const [isAnswerCorrect, setIsAnswerCorrect] = useState(false);
-  const [feedbackMessage, setFeedbackMessage] = useState(schoolColorsLesson.introMessage);
+  const [feedbackMessage, setFeedbackMessage] = useState(lesson?.introMessage ?? "");
   const [isCompleting, setIsCompleting] = useState(false);
 
-  const questions = schoolColorsLesson.questions;
+  const questions = lesson?.questions ?? [];
   const currentQuestion = questions[questionIndex];
   const isLastQuestion = questionIndex === questions.length - 1;
 
   const handleSelectOption = (optionIndex) => {
-    if (isAnswerCorrect || isCompleting) return;
+    if (isAnswerCorrect || isCompleting || !currentQuestion) return;
 
     setSelectedOptionIndex(optionIndex);
 
@@ -31,7 +34,7 @@ export default function SchoolMissionScreen({ navigation, route }) {
   };
 
   const handleNextQuestion = () => {
-    if (!isAnswerCorrect || isCompleting) return;
+    if (!isAnswerCorrect || isCompleting || !lesson) return;
 
     if (isLastQuestion) {
       void handleCompleteMission();
@@ -42,23 +45,50 @@ export default function SchoolMissionScreen({ navigation, route }) {
     setQuestionIndex(nextQuestionIndex);
     setSelectedOptionIndex(null);
     setIsAnswerCorrect(false);
-    setFeedbackMessage(schoolColorsLesson.introMessage);
+    setFeedbackMessage(lesson.introMessage);
   };
 
   const handleCompleteMission = async () => {
-    if (isCompleting) return;
+    if (isCompleting || !lesson) return;
 
     setIsCompleting(true);
 
     try {
-      await markLocationCompleted("school");
-      await markLessonCompleted({ lessonId, locationId: "school" });
+      await markLocationCompleted(LOCATION_ID);
+      await markLessonCompleted({ lessonId: lesson.id, locationId: LOCATION_ID });
       await markSchoolVisited();
+
+      const nextLesson = getNextLessonInLocation(LOCATION_ID, lesson.id);
+      if (nextLesson) {
+        navigation.replace("SchoolMission", {
+          autoStart: true,
+          locationId: LOCATION_ID,
+          lessonId: nextLesson.id,
+        });
+        return;
+      }
+
       navigation.goBack();
     } catch (_error) {
       setIsCompleting(false);
     }
   };
+
+  if (!lesson || !currentQuestion) {
+    return (
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#FFF8E1", padding: 20 }}>
+        <Text style={{ fontSize: 20, fontWeight: "bold", marginBottom: 12 }}>Licao nao encontrada</Text>
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          accessibilityRole="button"
+          accessibilityLabel="Voltar ao mapa"
+          style={{ backgroundColor: "#FF7043", borderRadius: 10, paddingVertical: 12, paddingHorizontal: 24 }}
+        >
+          <Text style={{ color: "white", fontWeight: "bold", fontSize: 16 }}>Voltar ao mapa</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
 
   return (
     <View style={{ flex: 1, backgroundColor: "#FFF8E1" }}>
@@ -66,11 +96,11 @@ export default function SchoolMissionScreen({ navigation, route }) {
         <View style={{ backgroundColor: "white", borderRadius: 24, padding: 20, borderWidth: 3, borderColor: "#FFB300" }}>
           <Text style={{ fontSize: 52, marginBottom: 10, textAlign: "center" }}>🎨</Text>
           <Text style={{ fontSize: 28, fontWeight: "bold", marginBottom: 8, textAlign: "center", color: "#E65100" }}>
-            {schoolColorsLesson.title}
+            {lesson.title}
           </Text>
           <Text style={{ fontSize: 16, color: "#444", textAlign: "center", lineHeight: 22, marginBottom: 14 }}>
             {autoStart
-              ? "Tutorial iniciado! Vamos aprender as cores em ingles."
+              ? "Licao iniciada! Continue a trilha da Escola."
               : "Bem-vindo a Escola!"}
           </Text>
 
@@ -144,8 +174,8 @@ export default function SchoolMissionScreen({ navigation, route }) {
                     }}
                   />
                   <Text style={{ fontSize: 18, fontWeight: "bold", color: "#263238" }}>{option.label}</Text>
-                  {isSuccessSelection && <Text style={{ marginLeft: "auto", fontSize: 18 }}>✅</Text>}
-                  {isWrongSelection && <Text style={{ marginLeft: "auto", fontSize: 18 }}>❌</Text>}
+                  {isSuccessSelection && <Text style={{ marginLeft: "auto", fontSize: 18 }}>OK</Text>}
+                  {isWrongSelection && <Text style={{ marginLeft: "auto", fontSize: 18 }}>X</Text>}
                 </TouchableOpacity>
               );
             })}
@@ -170,7 +200,7 @@ export default function SchoolMissionScreen({ navigation, route }) {
             <TouchableOpacity
               onPress={handleNextQuestion}
               accessibilityRole="button"
-              accessibilityLabel={isLastQuestion ? "Concluir lição de cores" : "Ir para a próxima pergunta"}
+              accessibilityLabel={isLastQuestion ? "Concluir licao" : "Ir para a proxima pergunta"}
               disabled={isCompleting}
               style={{
                 backgroundColor: isCompleting ? "#BDBDBD" : "#FF7043",
@@ -180,7 +210,7 @@ export default function SchoolMissionScreen({ navigation, route }) {
               }}
             >
               <Text style={{ color: "white", fontWeight: "bold", fontSize: 16 }}>
-                {isCompleting ? "Concluindo..." : isLastQuestion ? "Concluir lição" : "Próxima pergunta"}
+                {isCompleting ? "Concluindo..." : isLastQuestion ? "Concluir licao" : "Proxima pergunta"}
               </Text>
             </TouchableOpacity>
           )}

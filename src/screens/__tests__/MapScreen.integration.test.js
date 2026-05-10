@@ -96,6 +96,7 @@ describe("MapScreen integration", () => {
     expect(navigation.navigate).toHaveBeenCalledWith("SchoolMission", {
       autoStart: true,
       locationId: "test-school",
+      lessonId: undefined,
     });
   });
 

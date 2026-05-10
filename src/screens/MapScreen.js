@@ -6,6 +6,7 @@ import { useFocusEffect } from "@react-navigation/native";
 import { locations } from "../data/locationConfig";
 import { npcConfigs } from "../data/npcConfig";
 import { lessonMissionCatalog, buildLessonMissionCollectibles, getLatestLessonMissionForLesson, getLessonMissionsByLessonId } from "../data/lessonMissionCatalog";
+import { getNextPendingLessonForLocation } from "../data/lessonCatalog";
 import Player from "../components/Player";
 import Npc from "../components/Npc";
 import FloatingJoystick from "../components/FloatingJoystick";
@@ -470,15 +471,17 @@ export default function MapScreen({ navigation }) {
         if (!activeLocation) return;
 
         setActiveLocationId(null);
+        const nextLesson = getNextPendingLessonForLocation(activeLocation.id, lessonCompletions);
+        const lessonIdToOpen = nextLesson?.id ?? activeLocation.lessonId;
 
         if (navigation?.navigate && activeLocation.screenRoute) {
             navigation.navigate(activeLocation.screenRoute, {
                 autoStart: true,
                 locationId: activeLocation.id,
-                lessonId: activeLocation.lessonId,
+                lessonId: lessonIdToOpen,
             });
         }
-    }, [activeLocation, navigation]);
+    }, [activeLocation, lessonCompletions, navigation]);
 
     const handleJoystickMove = useCallback((nextVector) => {
         moveVectorRef.current = nextVector;
