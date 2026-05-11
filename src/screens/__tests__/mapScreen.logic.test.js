@@ -16,6 +16,7 @@ import {
   resolveMageGuideAction,
   resolveMissionCollectiblePickup,
   buildLessonMissionCollectibles,
+  resolveProgressionCheckpoint,
 } from "../mapScreen.logic";
 
 describe("mapScreen.logic", () => {
@@ -321,6 +322,24 @@ describe("mapScreen.logic", () => {
       expect.objectContaining({ id: "balloon-1", x: 110, y: 220, width: 40, height: 40 }),
       expect.objectContaining({ id: "balloon-2", x: 95, y: 215, width: 40, height: 40 }),
     ]);
+  });
+
+  it("gera checkpoint declarativo de progressao", () => {
+    const checkpoint = resolveProgressionCheckpoint({
+      locationId: "school",
+      lessonId: "school-colors-1",
+      missionId: "school-colors-red-balloons",
+      phase: "offerMission",
+    });
+
+    expect(checkpoint).toEqual(
+      expect.objectContaining({
+        locationId: "school",
+        lessonId: "school-colors-1",
+        missionId: "school-colors-red-balloons",
+        phase: "offerMission",
+      })
+    );
   });
 });
 

@@ -16,6 +16,8 @@ import {
     loadProgress,
     markSchoolVisited,
     markLessonMissionCompleted,
+    saveMissionCheckpoint,
+    clearMissionCheckpoint,
     getLatestLessonCompletion,
     hasCompletedLessonMission,
     getProgressDateKey,
@@ -35,7 +37,13 @@ import {
     resolveActiveLessonMission,
     resolveMageGuideAction,
     resolveMissionCollectiblePickup,
+    resolveProgressionCheckpoint,
 } from "./mapScreen.logic";
+import {
+    buildMageGuideSnapshot,
+    resolveMageGuideState,
+    shouldSkipNpcDialogByCooldown,
+} from "./mageGuide.logic";
 
 const victorianMapData = require("../../assets/lpc-victorian-preview-see-readme/lpc-victorian-preview/victorian-preview.json");
 const MAP_BACKGROUND = require("../../assets/lpc-victorian-preview-see-readme/lpc-victorian-preview/victorian-preview.png");
@@ -341,6 +349,7 @@ export default function MapScreen({ navigation }) {
     const npcPausedRef = useRef({});
     const npcNearRef = useRef({});
     const npcDialogRef = useRef(npcDialog);
+    const npcDialogCooldownRef = useRef({});
 
     const locationTriggers = useMemo(
         () =>
@@ -620,6 +629,25 @@ export default function MapScreen({ navigation }) {
             hasFinishedLatestLessonMission,
         ]
     );
+    const mageGuideState = useMemo(
+        () =>
+            resolveMageGuideState(
+                buildMageGuideSnapshot({
+                    hasVisitedSchoolToday: hasVisitedSchoolTodayState,
+                    latestCompletedLesson,
+                    activeLessonMission,
+                    latestCompletedLessonMission,
+                    hasFinishedLatestLessonMission,
+                })
+            ),
+        [
+            hasVisitedSchoolTodayState,
+            latestCompletedLesson,
+            activeLessonMission,
+            latestCompletedLessonMission,
+            hasFinishedLatestLessonMission,
+        ]
+    );
 
     useEffect(() => {
         setCollectedMissionItemIds([]);
@@ -642,6 +670,7 @@ export default function MapScreen({ navigation }) {
                 setWarnedWrongMissionItemIds([]);
                 setObjectiveOverrideId(null);
                 setUnlockedLessonMissionId(null);
+                await clearMissionCheckpoint();
                 const completionMessage =
                     mission.feedbackRules?.completionMessage ?? "Missao concluida!";
                 const rewardText = mission.reward?.text;
@@ -717,9 +746,13 @@ export default function MapScreen({ navigation }) {
                     const d = dialogs[0];
 
                     if (d.npcId === "mage-guide") {
+                        if (shouldSkipNpcDialogByCooldown(npcDialogCooldownRef.current[d.npcId])) {
+                            return newNpcStates;
+                        }
                         // O mage-guia decide a missao com base na ultima licao concluida.
                         void (async () => {
                             try {
+                                npcDialogCooldownRef.current[d.npcId] = Date.now();
                                 if (mageGuideAction === "goToSchool") {
                                     showNpcDialog(
                                         "Antes de seguir para missoes no mapa, conclua uma licao na Escola.",
@@ -757,6 +790,15 @@ export default function MapScreen({ navigation }) {
                                             autoHideMs: 8000,
                                         });
                                         setUnlockedLessonMissionId(activeLessonMission.missionId);
+                                        const checkpoint = resolveProgressionCheckpoint({
+                                            locationId: latestCompletedLesson?.locationId ?? "school",
+                                            lessonId: latestCompletedLesson?.lessonId,
+                                            missionId: activeLessonMission.missionId,
+                                            phase: mageGuideState,
+                                        });
+                                        if (checkpoint) {
+                                            await saveMissionCheckpoint(checkpoint);
+                                        }
                                         return;
                                     }
 
@@ -772,6 +814,15 @@ export default function MapScreen({ navigation }) {
                                             });
                                         },
                                     });
+                                    const checkpoint = resolveProgressionCheckpoint({
+                                        locationId: latestCompletedLesson?.locationId ?? "school",
+                                        lessonId: latestCompletedLesson?.lessonId,
+                                        missionId: activeLessonMission.missionId,
+                                        phase: mageGuideState,
+                                    });
+                                    if (checkpoint) {
+                                        await saveMissionCheckpoint(checkpoint);
+                                    }
                                     return;
                                 }
 
@@ -836,6 +887,7 @@ export default function MapScreen({ navigation }) {
         latestCompletedLessonMission,
         hasFinishedLatestLessonMission,
         mageGuideAction,
+        mageGuideState,
         navigation,
     ]);
 
@@ -1309,7 +1361,7 @@ export default function MapScreen({ navigation }) {
                 ctaLabel={npcDialog.ctaLabel}
                 onPressCta={npcDialog.onPressCta}
                 width={npcDialog.width}
-                onClose={undefined}
+                onClose={hideNpcDialog}
                 variant="npc"
                 avatarSource={npcConfigById[npcDialog.npcId]?.dialogAvatarSource ?? npcConfigById[npcDialog.npcId]?.sprite?.source}
                 avatarAlt={npcConfigById[npcDialog.npcId]?.name}

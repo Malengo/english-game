@@ -6,6 +6,7 @@ const DEFAULT_PROGRESS = {
   completedLocationIds: [],
   lessonCompletions: [],
   completedLessonMissionIds: [],
+  missionCheckpoint: null,
 };
 
 export function getProgressDateKey(timestamp = Date.now()) {
@@ -65,7 +66,32 @@ function normalizeProgress(rawProgress) {
     completedLocationIds,
     lessonCompletions,
     completedLessonMissionIds,
+    missionCheckpoint: null,
   };
+
+  if (
+    rawProgress.missionCheckpoint &&
+    typeof rawProgress.missionCheckpoint === "object" &&
+    typeof rawProgress.missionCheckpoint.locationId === "string" &&
+    typeof rawProgress.missionCheckpoint.lessonId === "string"
+  ) {
+    result.missionCheckpoint = {
+      locationId: rawProgress.missionCheckpoint.locationId,
+      lessonId: rawProgress.missionCheckpoint.lessonId,
+      missionId:
+        typeof rawProgress.missionCheckpoint.missionId === "string"
+          ? rawProgress.missionCheckpoint.missionId
+          : null,
+      phase:
+        typeof rawProgress.missionCheckpoint.phase === "string"
+          ? rawProgress.missionCheckpoint.phase
+          : "npc",
+      updatedAt:
+        typeof rawProgress.missionCheckpoint.updatedAt === "string"
+          ? rawProgress.missionCheckpoint.updatedAt
+          : new Date().toISOString(),
+    };
+  }
 
   if (typeof rawProgress.lastSchoolVisit === "string") {
     result.lastSchoolVisit = rawProgress.lastSchoolVisit;
@@ -201,6 +227,38 @@ export async function markLessonMissionCompleted(missionId, completedAt = Date.n
   return saveProgress({
     ...progress,
     completedLessonMissionIds: Array.from(nextCompleted),
+    missionCheckpoint:
+      progress.missionCheckpoint?.missionId === missionId ? null : progress.missionCheckpoint ?? null,
+  });
+}
+
+export async function saveMissionCheckpoint(checkpoint) {
+  const progress = await loadProgress();
+  if (
+    !checkpoint ||
+    typeof checkpoint.locationId !== "string" ||
+    typeof checkpoint.lessonId !== "string"
+  ) {
+    return progress;
+  }
+
+  return saveProgress({
+    ...progress,
+    missionCheckpoint: {
+      locationId: checkpoint.locationId,
+      lessonId: checkpoint.lessonId,
+      missionId: typeof checkpoint.missionId === "string" ? checkpoint.missionId : null,
+      phase: typeof checkpoint.phase === "string" ? checkpoint.phase : "npc",
+      updatedAt: typeof checkpoint.updatedAt === "string" ? checkpoint.updatedAt : new Date().toISOString(),
+    },
+  });
+}
+
+export async function clearMissionCheckpoint() {
+  const progress = await loadProgress();
+  return saveProgress({
+    ...progress,
+    missionCheckpoint: null,
   });
 }
 

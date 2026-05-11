@@ -109,7 +109,10 @@ export default function PlayerDialog({
 
                 {ctaLabel && onPressCta && (
                     <TouchableOpacity
-                        onPress={onPressCta}
+                        onPress={() => {
+                            onPressCta();
+                            if (onClose) onClose();
+                        }}
                         accessibilityRole="button"
                         accessibilityLabel={ctaLabel}
                         style={{

@@ -13,6 +13,8 @@ import {
   getProgressDateKey,
   buildDailyLessonMissionCompletionId,
   isTimestampOnProgressDate,
+  saveMissionCheckpoint,
+  clearMissionCheckpoint,
 } from "../progressStorage";
 
 describe("progressStorage", () => {
@@ -27,6 +29,7 @@ describe("progressStorage", () => {
       completedLocationIds: [],
       lessonCompletions: [],
       completedLessonMissionIds: [],
+      missionCheckpoint: null,
     });
   });
 
@@ -43,6 +46,7 @@ describe("progressStorage", () => {
         { lessonId: "lesson-a", locationId: "school", completedAt: "2026-04-29T00:00:00.000Z" },
       ],
       completedLessonMissionIds: ["mission-a"],
+      missionCheckpoint: null,
     });
     await expect(loadProgress()).resolves.toEqual(saved);
   });
@@ -54,6 +58,7 @@ describe("progressStorage", () => {
       completedLocationIds: [],
       lessonCompletions: [],
       completedLessonMissionIds: [],
+      missionCheckpoint: null,
     });
   });
 
@@ -136,5 +141,25 @@ describe("progressStorage", () => {
     expect(getProgressDateKey(timestamp)).toBe("2026-04-29");
     expect(isTimestampOnProgressDate(new Date(timestamp).toISOString(), timestamp)).toBe(true);
     expect(buildDailyLessonMissionCompletionId("mission-a", timestamp)).toBe("mission-a:2026-04-29");
+  });
+
+  it("salva e limpa checkpoint de missao", async () => {
+    const saved = await saveMissionCheckpoint({
+      locationId: "school",
+      lessonId: "school-colors-1",
+      missionId: "school-colors-red-balloons",
+      phase: "offerMission",
+    });
+    expect(saved.missionCheckpoint).toEqual(
+      expect.objectContaining({
+        locationId: "school",
+        lessonId: "school-colors-1",
+        missionId: "school-colors-red-balloons",
+        phase: "offerMission",
+      })
+    );
+
+    const cleared = await clearMissionCheckpoint();
+    expect(cleared.missionCheckpoint).toBeNull();
   });
 });

@@ -329,19 +329,34 @@ export function resolveMageGuideAction({
   latestCompletedLessonMission,
   hasFinishedLatestLessonMission,
 }) {
-  if (!hasVisitedSchoolToday || !latestCompletedLesson) {
+  const hasLessonToday = Boolean(latestCompletedLesson);
+  const hasMissionAvailable = Boolean(activeLessonMission);
+  const hasMissionCompleted = Boolean(latestCompletedLessonMission && hasFinishedLatestLessonMission);
+
+  if (!hasVisitedSchoolToday || !hasLessonToday) {
     return "goToSchool";
   }
 
-  if (activeLessonMission) {
+  if (hasMissionAvailable) {
     return "offerMission";
   }
 
-  if (latestCompletedLessonMission && hasFinishedLatestLessonMission) {
+  if (hasMissionCompleted) {
     return "completedMission";
   }
 
   return "noMission";
+}
+
+export function resolveProgressionCheckpoint({ locationId, lessonId, missionId, phase = "npc" }) {
+  if (!locationId || !lessonId) return null;
+  return {
+    locationId,
+    lessonId,
+    missionId: missionId ?? null,
+    phase,
+    updatedAt: new Date().toISOString(),
+  };
 }
 
 export function resolveMissionCollectiblePickup({
