@@ -4,112 +4,22 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="394fa644-f945-4215-9278-32d627b1c689" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.github/copilot-intructions.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.github/core.prompt.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/.gitignore" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/copilotDiffState.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.vscode/extensions.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.vscode/settings.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/AGENTS.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/App.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/SPRITE_GUIDE.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/__mocks__/@react-native-async-storage/async-storage.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/app.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/assets/images/android-icon-background.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/assets/images/android-icon-foreground.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/assets/images/android-icon-monochrome.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/assets/images/favicon.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/assets/images/icon.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/assets/images/npc/mage-SWEN-body.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/assets/images/npc/mage-SWEN.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/assets/images/partial-react-logo.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/assets/images/player.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/assets/images/react-logo.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/assets/images/react-logo@2x.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/assets/images/react-logo@3x.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/assets/images/splash-icon.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/assets/lpc-victorian-preview-see-readme/lpc-victorian-preview/README.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/assets/lpc-victorian-preview-see-readme/lpc-victorian-preview/bricks.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/assets/lpc-victorian-preview-see-readme/lpc-victorian-preview/bricks.tsx" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/assets/lpc-victorian-preview-see-readme/lpc-victorian-preview/container.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/assets/lpc-victorian-preview-see-readme/lpc-victorian-preview/food.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/assets/lpc-victorian-preview-see-readme/lpc-victorian-preview/roofs.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/assets/lpc-victorian-preview-see-readme/lpc-victorian-preview/roofs.tsx" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/assets/lpc-victorian-preview-see-readme/lpc-victorian-preview/terrain-map-v8.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/assets/lpc-victorian-preview-see-readme/lpc-victorian-preview/terrain-map-v8.tsx" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/assets/lpc-victorian-preview-see-readme/lpc-victorian-preview/trees-green.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/assets/lpc-victorian-preview-see-readme/lpc-victorian-preview/victorian-accessories.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/assets/lpc-victorian-preview-see-readme/lpc-victorian-preview/victorian-garden.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/assets/lpc-victorian-preview-see-readme/lpc-victorian-preview/victorian-mansion.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/assets/lpc-victorian-preview-see-readme/lpc-victorian-preview/victorian-market.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/assets/lpc-victorian-preview-see-readme/lpc-victorian-preview/victorian-preview.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/assets/lpc-victorian-preview-see-readme/lpc-victorian-preview/victorian-preview.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/assets/lpc-victorian-preview-see-readme/lpc-victorian-preview/victorian-preview.tmx" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/assets/lpc-victorian-preview-see-readme/lpc-victorian-preview/victorian-streets.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/assets/lpc-victorian-preview-see-readme/lpc-victorian-preview/victorian-tenement.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/assets/lpc-victorian-preview-see-readme/lpc-victorian-preview/victorian-windows-doors.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/assets/lpc-victorian-preview-see-readme/lpc-victorian-preview/windows-doors.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/babel.config.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/eas.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/eslint.config.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/index.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/jest.config.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/jest.setup.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/map.tiled-session" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/package-lock.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/prompts/lesson.prompt.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/Collectible.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/ColoredBalloon.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/FloatingJoystick.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/Npc.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/Player.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/PlayerDialog.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/__tests__/Collectible.test.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/__tests__/ColoredBalloon.test.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/__tests__/Npc.test.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/__tests__/Player.test.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/__tests__/PlayerDialog.test.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/data/__tests__/lessonCatalog.test.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/data/__tests__/lessonMissionCatalog.test.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/data/__tests__/locationConfig.test.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/data/alphabet.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/data/bakeryFoodsLesson.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/data/houseObjectsLesson.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/data/lessonCatalog.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/data/lessonMissionCatalog.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/data/lessonsApi.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/data/locationConfig.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/data/missionTemplates.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/data/npcConfig.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/data/schoolColorsLesson.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/missions/balloons/__tests__/buildBalloonCollectibles.test.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/missions/balloons/balloonMissionConfig.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/missions/balloons/buildBalloonCollectibles.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/screens/BakeryMissionScreen.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/screens/HouseMissionScreen.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/screens/LessonMissionScreen.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/screens/LoginScreen.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/screens/MapScreen.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/screens/SchoolMissionScreen.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/screens/__tests__/BakeryMissionScreen.test.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/screens/__tests__/HouseMissionScreen.test.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/screens/__tests__/LoginScreen.test.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/screens/__tests__/MapScreen.integration.test.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/screens/__tests__/MapScreen.npcNearby.test.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/screens/__tests__/SchoolMissionScreen.test.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/screens/__tests__/mageGuide.logic.test.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/screens/__tests__/mapScreen.logic.test.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/screens/mageGuide.logic.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/screens/mapScreen.logic.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/services/authService.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/utils/__tests__/progressStorage.test.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/utils/progressStorage.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/tsconfig.json" beforeDir="false" />
+    <list default="true" id="394fa644-f945-4215-9278-32d627b1c689" name="Changes" comment="monorepo">
+      <change afterPath="$PROJECT_DIR$/backend/src/main/java/com/englishgame/backend/controller/UiController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backend/src/main/resources/static/create-lesson.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/backend/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/englishgame/backend/controller/ExerciseController.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/englishgame/backend/controller/ExerciseController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/englishgame/backend/controller/LessonController.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/englishgame/backend/controller/LessonController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/englishgame/backend/controller/LessonItemController.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/englishgame/backend/controller/LessonItemController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/englishgame/backend/dto/ExerciseOptionResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/englishgame/backend/dto/ExerciseOptionResponse.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/englishgame/backend/dto/ExerciseResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/englishgame/backend/dto/ExerciseResponse.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/englishgame/backend/entity/Exercise.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/englishgame/backend/entity/Exercise.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/englishgame/backend/entity/ExerciseOption.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/englishgame/backend/entity/ExerciseOption.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/englishgame/backend/repository/ExerciseOptionRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/englishgame/backend/repository/ExerciseOptionRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/englishgame/backend/repository/ExerciseRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/englishgame/backend/repository/ExerciseRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/englishgame/backend/service/AudioGenerationService.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/englishgame/backend/service/AudioGenerationService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/resources/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/resources/application.yml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -120,6 +30,15 @@
     <persistenceIdMap>
       <entry key="_C:/Users/josem/Documents/estudos/english-game" value="3DaDFDRiNqHaw4RmZENucTA6bQJ" />
     </persistenceIdMap>
+  </component>
+  <component name="CopilotUserSelectedChatMode">
+    <option name="chatModeId" value="file:///c%3A/snapshot/copilot-intellij/dist/assets/agents/Plan.agent.md" />
+  </component>
+  <component name="CopilotUserSelectedModel">
+    <selectedModels>
+      <entry key="agent-panel" value="GPT-5.2-Codex" />
+      <entry key="chat-panel" value="GPT-5.2-Codex" />
+    </selectedModels>
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -136,10 +55,10 @@
     &quot;accountId&quot;: &quot;0bf9fa17-1619-46d5-a410-786fa8b48e95&quot;
   }
 }</component>
-  <component name="KubernetesApiPersistence"><![CDATA[{}]]></component>
-  <component name="KubernetesApiProvider"><![CDATA[{
-  "isMigrated": true
-}]]></component>
+  <component name="KubernetesApiPersistence">{}</component>
+  <component name="KubernetesApiProvider">{
+  &quot;isMigrated&quot;: true
+}</component>
   <component name="ProjectColorInfo">{
   &quot;customColor&quot;: &quot;&quot;,
   &quot;associatedIndex&quot;: 3
@@ -158,6 +77,8 @@
     "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
     "RunOnceActivity.git.unshallow": "true",
     "RunOnceActivity.typescript.service.memoryLimit.init": "true",
+    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
+    "Spring Boot.Unnamed.executor": "Debug",
     "codeWithMe.voiceChat.enabledByDefault": "false",
     "deletionFromPopupRequiresConfirmation": "false",
     "git-widget-placeholder": "master",
@@ -179,7 +100,7 @@
   <component name="RunManager">
     <configuration name="Unnamed" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
       <module name="english-game" />
-      <option name="SPRING_BOOT_MAIN_CLASS" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.englishgame.backend.EnglishGameBackendApplication" />
       <method v="2">
         <option name="Make" enabled="true" />
       </method>
@@ -195,12 +116,26 @@
       <workItem from="1778511205380" duration="78000" />
       <workItem from="1778518258360" duration="1126000" />
       <workItem from="1778590839891" duration="419000" />
-      <workItem from="1778591431241" duration="3215000" />
+      <workItem from="1778591431241" duration="5944000" />
+      <workItem from="1778599408837" duration="1821000" />
     </task>
+    <task id="LOCAL-00001" summary="monorepo">
+      <option name="closed" value="true" />
+      <created>1778596359545</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1778596359546</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="monorepo" />
+    <option name="LAST_COMMIT_MESSAGE" value="monorepo" />
   </component>
   <component name="github-copilot-workspace">
     <instructionFileLocations>

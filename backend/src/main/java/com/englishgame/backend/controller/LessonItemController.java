@@ -1,7 +1,7 @@
 package com.englishgame.backend.controller;
 
 import com.englishgame.backend.dto.AudioResponse;
-import com.englishgame.backend.dto.GenerateAudioRequest;
+import com.englishgame.backend.dto.GenerateLessonItemAudioRequest;
 import com.englishgame.backend.dto.LessonItemRequest;
 import com.englishgame.backend.dto.LessonItemResponse;
 import com.englishgame.backend.service.AudioGenerationService;
@@ -62,7 +62,7 @@ public class LessonItemController {
     public AudioResponse generateAudio(
             @PathVariable UUID lessonId,
             @PathVariable UUID itemId,
-            @Valid @RequestBody GenerateAudioRequest request
+            @Valid @RequestBody GenerateLessonItemAudioRequest request
     ) {
         return AudioResponse.from(audioGenerationService.generateForLessonItem(
                 lessonId,

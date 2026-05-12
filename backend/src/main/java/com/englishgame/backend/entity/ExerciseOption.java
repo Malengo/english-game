@@ -23,6 +23,10 @@ public class ExerciseOption {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String text;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "audio_id")
+    private AudioAsset audio;
+
     @Column(name = "is_correct", nullable = false)
     private Boolean correct = false;
 
@@ -55,6 +59,14 @@ public class ExerciseOption {
 
     public void setText(String text) {
         this.text = text;
+    }
+
+    public AudioAsset getAudio() {
+        return audio;
+    }
+
+    public void setAudio(AudioAsset audio) {
+        this.audio = audio;
     }
 
     public Boolean getCorrect() {

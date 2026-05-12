@@ -3,9 +3,13 @@ package com.englishgame.backend.service;
 import com.englishgame.backend.dto.GenerateAudioRequest;
 import com.englishgame.backend.entity.AudioAsset;
 import com.englishgame.backend.entity.AudioAssetStatus;
+import com.englishgame.backend.entity.Exercise;
+import com.englishgame.backend.entity.ExerciseOption;
 import com.englishgame.backend.entity.LessonItem;
 import com.englishgame.backend.exception.ResourceNotFoundException;
 import com.englishgame.backend.repository.AudioAssetRepository;
+import com.englishgame.backend.repository.ExerciseOptionRepository;
+import com.englishgame.backend.repository.ExerciseRepository;
 import com.englishgame.backend.repository.LessonItemRepository;
 import com.englishgame.backend.storage.AudioStorageService;
 import com.englishgame.backend.storage.TtsProperties;
@@ -26,17 +30,23 @@ public class AudioGenerationService {
 
     private final AudioAssetRepository audioAssetRepository;
     private final LessonItemRepository lessonItemRepository;
+    private final ExerciseRepository exerciseRepository;
+    private final ExerciseOptionRepository exerciseOptionRepository;
     private final AudioStorageService audioStorageService;
     private final TtsProperties ttsProperties;
 
     public AudioGenerationService(
             AudioAssetRepository audioAssetRepository,
             LessonItemRepository lessonItemRepository,
+            ExerciseRepository exerciseRepository,
+            ExerciseOptionRepository exerciseOptionRepository,
             AudioStorageService audioStorageService,
             TtsProperties ttsProperties
     ) {
         this.audioAssetRepository = audioAssetRepository;
         this.lessonItemRepository = lessonItemRepository;
+        this.exerciseRepository = exerciseRepository;
+        this.exerciseOptionRepository = exerciseOptionRepository;
         this.audioStorageService = audioStorageService;
         this.ttsProperties = ttsProperties;
     }
@@ -60,8 +70,49 @@ public class AudioGenerationService {
         }
 
         AudioAsset audio = generate(new GenerateAudioRequest(item.getText(), voice, language));
-        item.setAudio(audio);
-        lessonItemRepository.save(item);
+        if (audio.getStatus() == AudioAssetStatus.GENERATED) {
+            item.setAudio(audio);
+            lessonItemRepository.save(item);
+        }
+        return audio;
+    }
+
+    @Transactional
+    public AudioAsset generateForExercisePrompt(UUID lessonId, UUID exerciseId, String voice, String language) {
+        Exercise exercise = exerciseRepository.findById(exerciseId)
+                .orElseThrow(() -> new ResourceNotFoundException("Exercise not found"));
+        if (!exercise.getLesson().getId().equals(lessonId)) {
+            throw new ResourceNotFoundException("Exercise not found");
+        }
+
+        AudioAsset audio = generate(new GenerateAudioRequest(exercise.getPrompt(), voice, language));
+        if (audio.getStatus() == AudioAssetStatus.GENERATED) {
+            exercise.setPromptAudio(audio);
+            exerciseRepository.save(exercise);
+        }
+        return audio;
+    }
+
+    @Transactional
+    public AudioAsset generateForExerciseOption(
+            UUID lessonId,
+            UUID exerciseId,
+            UUID optionId,
+            String voice,
+            String language
+    ) {
+        ExerciseOption option = exerciseOptionRepository.findById(optionId)
+                .orElseThrow(() -> new ResourceNotFoundException("Exercise option not found"));
+        if (!option.getExercise().getId().equals(exerciseId)
+                || !option.getExercise().getLesson().getId().equals(lessonId)) {
+            throw new ResourceNotFoundException("Exercise option not found");
+        }
+
+        AudioAsset audio = generate(new GenerateAudioRequest(option.getText(), voice, language));
+        if (audio.getStatus() == AudioAssetStatus.GENERATED) {
+            option.setAudio(audio);
+            exerciseOptionRepository.save(option);
+        }
         return audio;
     }
 

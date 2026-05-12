@@ -16,6 +16,23 @@ docker compose up -d
 mvn spring-boot:run
 ```
 
+Depois abra:
+
+```text
+http://localhost:8082/
+```
+
+A pagina inicial abre o fluxo completo de cadastro:
+
+1. Criar a licao.
+2. Criar uma pergunta `MULTIPLE_CHOICE`.
+3. Gerar audio da pergunta com Edge TTS e salvar no R2.
+4. Gerar audio de cada alternativa com Edge TTS e salvar no R2.
+5. Revisar os players de audio.
+6. Publicar a licao.
+
+No JSON da licao, a pergunta retorna `promptAudioUrl` e cada alternativa retorna `audioUrl`.
+
 ## Banco
 
 O projeto usa PostgreSQL e Flyway. As migrations ficam em:

@@ -51,22 +51,26 @@ public class LessonController {
     }
 
     @PostMapping
+    @Transactional
     public ResponseEntity<LessonResponse> create(@Valid @RequestBody LessonRequest request) {
         LessonResponse response = LessonResponse.from(lessonService.create(request));
         return ResponseEntity.created(URI.create("/api/lessons/" + response.id())).body(response);
     }
 
     @PutMapping("/{id}")
+    @Transactional
     public LessonResponse update(@PathVariable UUID id, @Valid @RequestBody LessonRequest request) {
         return LessonResponse.from(lessonService.update(id, request));
     }
 
     @PatchMapping("/{id}/publish")
+    @Transactional
     public LessonResponse publish(@PathVariable UUID id) {
         return LessonResponse.from(lessonService.publish(id));
     }
 
     @PatchMapping("/{id}/archive")
+    @Transactional
     public LessonResponse archive(@PathVariable UUID id) {
         return LessonResponse.from(lessonService.archive(id));
     }

@@ -6,6 +6,7 @@ import java.util.UUID;
 public record ExerciseOptionResponse(
         UUID id,
         String text,
+        String audioUrl,
         Boolean correct,
         Integer orderIndex
 ) {
@@ -13,6 +14,7 @@ public record ExerciseOptionResponse(
         return new ExerciseOptionResponse(
                 option.getId(),
                 option.getText(),
+                option.getAudio() == null ? null : option.getAudio().getPublicUrl(),
                 option.getCorrect(),
                 option.getOrderIndex()
         );

@@ -29,6 +29,10 @@ public class Exercise {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String prompt;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "prompt_audio_id")
+    private AudioAsset promptAudio;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 40)
     private ExerciseType type;
@@ -68,6 +72,14 @@ public class Exercise {
 
     public void setPrompt(String prompt) {
         this.prompt = prompt;
+    }
+
+    public AudioAsset getPromptAudio() {
+        return promptAudio;
+    }
+
+    public void setPromptAudio(AudioAsset promptAudio) {
+        this.promptAudio = promptAudio;
     }
 
     public ExerciseType getType() {

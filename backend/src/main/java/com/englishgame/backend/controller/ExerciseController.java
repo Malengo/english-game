@@ -1,7 +1,10 @@
 package com.englishgame.backend.controller;
 
+import com.englishgame.backend.dto.AudioResponse;
 import com.englishgame.backend.dto.ExerciseRequest;
 import com.englishgame.backend.dto.ExerciseResponse;
+import com.englishgame.backend.dto.GenerateLessonItemAudioRequest;
+import com.englishgame.backend.service.AudioGenerationService;
 import com.englishgame.backend.service.ExerciseService;
 import jakarta.validation.Valid;
 import java.net.URI;
@@ -20,9 +23,11 @@ import org.springframework.web.bind.annotation.RestController;
 public class ExerciseController {
 
     private final ExerciseService exerciseService;
+    private final AudioGenerationService audioGenerationService;
 
-    public ExerciseController(ExerciseService exerciseService) {
+    public ExerciseController(ExerciseService exerciseService, AudioGenerationService audioGenerationService) {
         this.exerciseService = exerciseService;
+        this.audioGenerationService = audioGenerationService;
     }
 
     @PostMapping
@@ -48,5 +53,35 @@ public class ExerciseController {
     public ResponseEntity<Void> delete(@PathVariable UUID lessonId, @PathVariable UUID exerciseId) {
         exerciseService.delete(lessonId, exerciseId);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{exerciseId}/generate-prompt-audio")
+    public AudioResponse generatePromptAudio(
+            @PathVariable UUID lessonId,
+            @PathVariable UUID exerciseId,
+            @Valid @RequestBody GenerateLessonItemAudioRequest request
+    ) {
+        return AudioResponse.from(audioGenerationService.generateForExercisePrompt(
+                lessonId,
+                exerciseId,
+                request.voice(),
+                request.language()
+        ));
+    }
+
+    @PostMapping("/{exerciseId}/options/{optionId}/generate-audio")
+    public AudioResponse generateOptionAudio(
+            @PathVariable UUID lessonId,
+            @PathVariable UUID exerciseId,
+            @PathVariable UUID optionId,
+            @Valid @RequestBody GenerateLessonItemAudioRequest request
+    ) {
+        return AudioResponse.from(audioGenerationService.generateForExerciseOption(
+                lessonId,
+                exerciseId,
+                optionId,
+                request.voice(),
+                request.language()
+        ));
     }
 }

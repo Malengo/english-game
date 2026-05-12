@@ -1,0 +1,651 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Multiple choice lesson - English Game</title>
+  <style>
+    :root {
+      --bg: #f5f7fb;
+      --panel: #fff;
+      --text: #1f2937;
+      --muted: #667085;
+      --line: #d7deea;
+      --accent: #087f5b;
+      --accent-dark: #066449;
+      --soft: #eef6f2;
+      --danger: #b42318;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    main {
+      width: min(1120px, calc(100% - 32px));
+      margin: 28px auto 48px;
+    }
+
+    h1, h2, h3, p { margin-top: 0; }
+    h1 { margin-bottom: 8px; font-size: 28px; }
+    h2 { margin-bottom: 8px; font-size: 19px; }
+    h3 { margin-bottom: 8px; font-size: 15px; }
+
+    .muted {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 380px;
+      gap: 16px;
+      align-items: start;
+    }
+
+    .section {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 18px;
+      margin-bottom: 16px;
+    }
+
+    .step-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      min-height: 28px;
+      border-radius: 999px;
+      padding: 5px 10px;
+      background: var(--soft);
+      color: #075c43;
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    form, .stack {
+      display: grid;
+      gap: 12px;
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    label {
+      display: grid;
+      gap: 6px;
+      color: #344054;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    input, textarea, select {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 10px 11px;
+      background: #fff;
+      color: var(--text);
+      font: inherit;
+    }
+
+    textarea {
+      min-height: 82px;
+      resize: vertical;
+    }
+
+    button {
+      border: 0;
+      border-radius: 6px;
+      padding: 10px 14px;
+      background: var(--accent);
+      color: #fff;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    button:hover { background: var(--accent-dark); }
+
+    button.secondary {
+      background: #e9eef5;
+      color: #253041;
+    }
+
+    button.secondary:hover { background: #dce4ef; }
+
+    button:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .option-grid {
+      display: grid;
+      gap: 10px;
+    }
+
+    .option-row {
+      display: grid;
+      grid-template-columns: 80px minmax(0, 1fr) 112px;
+      gap: 10px;
+      align-items: end;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px;
+      background: #fbfcfe;
+    }
+
+    .status {
+      min-height: 48px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px;
+      background: #fff;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+      white-space: pre-wrap;
+    }
+
+    .status.ok {
+      background: #ecfdf3;
+      border-color: #abefc6;
+      color: #067647;
+    }
+
+    .status.err {
+      background: #fef3f2;
+      border-color: #fecdca;
+      color: var(--danger);
+    }
+
+    .summary {
+      position: sticky;
+      top: 16px;
+    }
+
+    .audio-list {
+      display: grid;
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .audio-card {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px;
+      background: #fbfcfe;
+    }
+
+    .audio-card strong {
+      display: block;
+      margin-bottom: 4px;
+      overflow-wrap: anywhere;
+    }
+
+    audio {
+      width: 100%;
+      margin-top: 8px;
+    }
+
+    pre {
+      max-height: 420px;
+      overflow: auto;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      background: #101828;
+      color: #e5e7eb;
+      padding: 14px;
+      font-size: 12px;
+      line-height: 1.5;
+      white-space: pre-wrap;
+    }
+
+    @media (max-width: 900px) {
+      .layout, .row, .option-row { grid-template-columns: 1fr; }
+      .summary { position: static; }
+    }
+  </style>
+</head>
+<body>
+<main>
+  <h1>Cadastro de licao multiple choice</h1>
+  <p class="muted">Fluxo focado em uma pergunta com audio e alternativas tambem com audio.</p>
+
+  <div class="layout">
+    <div>
+      <section class="section">
+        <div class="step-title">
+          <h2>1. Criar licao</h2>
+          <span id="lessonState" class="badge">Pendente</span>
+        </div>
+
+        <form id="lessonForm">
+          <div class="row">
+            <label>Titulo *
+              <input name="title" required maxlength="160" placeholder="Colors at School">
+            </label>
+            <label>Slug
+              <input name="slug" maxlength="180" placeholder="colors-at-school">
+            </label>
+          </div>
+
+          <label>Descricao
+            <textarea name="description" placeholder="Practice colors by listening and choosing the right answer."></textarea>
+          </label>
+
+          <div class="row">
+            <label>Location ID
+              <input name="locationId" maxlength="80" placeholder="school">
+            </label>
+            <label>Stage required
+              <input name="stageRequired" type="number" min="1" value="1">
+            </label>
+          </div>
+
+          <label>Topico
+            <input name="topic" maxlength="80" placeholder="colors">
+          </label>
+
+          <div class="actions">
+            <button type="submit">Criar licao</button>
+            <button class="secondary" type="button" id="newLessonButton">Limpar fluxo</button>
+          </div>
+        </form>
+      </section>
+
+      <section class="section">
+        <div class="step-title">
+          <h2>2. Pergunta e audios</h2>
+          <span class="badge">MULTIPLE_CHOICE</span>
+        </div>
+        <p class="muted">Preencha a pergunta e as alternativas. Ao salvar, o backend cria o exercicio e gera o audio da pergunta e das alternativas.</p>
+
+        <form id="exerciseForm">
+          <label>Pergunta *
+            <textarea name="prompt" required placeholder="What color is the book?"></textarea>
+          </label>
+
+          <div class="row">
+            <label>Voz
+              <select name="voice">
+                <option value="en-US-JennyNeural">en-US-JennyNeural</option>
+                <option value="en-US-GuyNeural">en-US-GuyNeural</option>
+                <option value="en-GB-SoniaNeural">en-GB-SoniaNeural</option>
+                <option value="en-GB-RyanNeural">en-GB-RyanNeural</option>
+              </select>
+            </label>
+            <label>Idioma
+              <input name="language" value="en-US">
+            </label>
+          </div>
+
+          <div class="option-grid">
+            <div class="option-row">
+              <label>Correta
+                <input type="radio" name="correctOption" value="0" checked>
+              </label>
+              <label>Alternativa A *
+                <input name="optionText" required placeholder="Red">
+              </label>
+              <label>Ordem
+                <input type="number" value="0" disabled>
+              </label>
+            </div>
+
+            <div class="option-row">
+              <label>Correta
+                <input type="radio" name="correctOption" value="1">
+              </label>
+              <label>Alternativa B *
+                <input name="optionText" required placeholder="Blue">
+              </label>
+              <label>Ordem
+                <input type="number" value="1" disabled>
+              </label>
+            </div>
+
+            <div class="option-row">
+              <label>Correta
+                <input type="radio" name="correctOption" value="2">
+              </label>
+              <label>Alternativa C
+                <input name="optionText" placeholder="Green">
+              </label>
+              <label>Ordem
+                <input type="number" value="2" disabled>
+              </label>
+            </div>
+
+            <div class="option-row">
+              <label>Correta
+                <input type="radio" name="correctOption" value="3">
+              </label>
+              <label>Alternativa D
+                <input name="optionText" placeholder="Yellow">
+              </label>
+              <label>Ordem
+                <input type="number" value="3" disabled>
+              </label>
+            </div>
+          </div>
+
+          <label>
+            <span>
+              <input type="checkbox" name="generateAudio" checked>
+              Gerar audio da pergunta e das alternativas ao salvar
+            </span>
+          </label>
+
+          <div class="actions">
+            <button type="submit" id="saveExerciseButton" disabled>Salvar multiple choice</button>
+            <button class="secondary" type="button" id="publishButton" disabled>Publicar licao</button>
+          </div>
+        </form>
+      </section>
+    </div>
+
+    <aside class="section summary">
+      <h2>Resumo e preview</h2>
+      <div id="status" class="status">Crie uma licao para liberar o cadastro da pergunta.</div>
+      <div id="audioPreview" class="audio-list"></div>
+      <h3 style="margin-top:16px">JSON da licao</h3>
+      <pre id="jsonPreview">{}</pre>
+    </aside>
+  </div>
+</main>
+
+<script>
+  const state = {
+    lesson: null,
+    currentExercise: null
+  };
+
+  const lessonForm = document.getElementById('lessonForm');
+  const exerciseForm = document.getElementById('exerciseForm');
+  const lessonState = document.getElementById('lessonState');
+  const saveExerciseButton = document.getElementById('saveExerciseButton');
+  const publishButton = document.getElementById('publishButton');
+  const newLessonButton = document.getElementById('newLessonButton');
+  const statusEl = document.getElementById('status');
+  const jsonPreview = document.getElementById('jsonPreview');
+  const audioPreview = document.getElementById('audioPreview');
+
+  function field(form, name) {
+    const raw = new FormData(form).get(name);
+    return typeof raw === 'string' ? raw.trim() : raw;
+  }
+
+  function compact(payload) {
+    Object.keys(payload).forEach((key) => {
+      if (payload[key] === '' || payload[key] === null || payload[key] === undefined) {
+        delete payload[key];
+      }
+    });
+    return payload;
+  }
+
+  async function api(path, options = {}) {
+    const response = await fetch(path, {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        ...(options.headers || {})
+      }
+    });
+    const text = await response.text();
+    const body = text ? JSON.parse(text) : null;
+    if (!response.ok) {
+      throw new Error(body && body.message ? body.message : `${response.status} ${text}`);
+    }
+    return body;
+  }
+
+  function setStatus(kind, message) {
+    statusEl.className = kind ? `status ${kind}` : 'status';
+    statusEl.textContent = message;
+  }
+
+  function setBusy(button, busy, readyLabel) {
+    button.disabled = busy || !state.lesson;
+    button.textContent = busy ? 'Processando...' : readyLabel;
+  }
+
+  function updateControls() {
+    const hasLesson = Boolean(state.lesson);
+    saveExerciseButton.disabled = !hasLesson;
+    publishButton.disabled = !hasLesson || state.lesson.status === 'PUBLISHED';
+    lessonState.textContent = hasLesson ? `${state.lesson.title} (${state.lesson.status})` : 'Pendente';
+    jsonPreview.textContent = JSON.stringify(state.lesson || {}, null, 2);
+    renderAudioPreview();
+  }
+
+  function renderAudioPreview() {
+    audioPreview.innerHTML = '';
+    if (!state.currentExercise) {
+      return;
+    }
+
+    const entries = [];
+    entries.push({
+      label: 'Pergunta',
+      text: state.currentExercise.prompt,
+      url: state.currentExercise.promptAudioUrl
+    });
+
+    (state.currentExercise.options || []).forEach((option, index) => {
+      entries.push({
+        label: `Alternativa ${String.fromCharCode(65 + index)}${option.correct ? ' correta' : ''}`,
+        text: option.text,
+        url: option.audioUrl
+      });
+    });
+
+    entries.forEach((entry) => {
+      const card = document.createElement('div');
+      card.className = 'audio-card';
+      card.innerHTML = `
+        <strong>${escapeHtml(entry.label)}</strong>
+        <div class="muted">${escapeHtml(entry.text)}</div>
+        ${entry.url ? `<audio controls src="${escapeHtml(entry.url)}"></audio>` : '<div class="muted">Audio nao gerado.</div>'}
+      `;
+      audioPreview.appendChild(card);
+    });
+  }
+
+  function escapeHtml(value) {
+    return String(value || '')
+      .replaceAll('&', '&amp;')
+      .replaceAll('<', '&lt;')
+      .replaceAll('>', '&gt;')
+      .replaceAll('"', '&quot;')
+      .replaceAll("'", '&#039;');
+  }
+
+  async function refreshLesson() {
+    if (!state.lesson) {
+      return;
+    }
+    state.lesson = await api(`/api/lessons/${state.lesson.id}`);
+    state.currentExercise = state.lesson.exercises && state.lesson.exercises.length
+      ? state.lesson.exercises[state.lesson.exercises.length - 1]
+      : null;
+    updateControls();
+  }
+
+  function assertGenerated(audio, label) {
+    if (!audio || audio.status !== 'GENERATED') {
+      throw new Error(`${label}: ${audio && audio.errorMessage ? audio.errorMessage : 'audio nao gerado'}`);
+    }
+  }
+
+  lessonForm.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const payload = compact({
+      title: field(lessonForm, 'title'),
+      slug: field(lessonForm, 'slug'),
+      description: field(lessonForm, 'description'),
+      locationId: field(lessonForm, 'locationId'),
+      stageRequired: field(lessonForm, 'stageRequired') ? Number(field(lessonForm, 'stageRequired')) : undefined,
+      topic: field(lessonForm, 'topic')
+    });
+
+    try {
+      setStatus(null, 'Criando licao...');
+      state.lesson = await api('/api/lessons', {
+        method: 'POST',
+        body: JSON.stringify(payload)
+      });
+      state.currentExercise = null;
+      lessonForm.reset();
+      lessonForm.elements.stageRequired.value = '1';
+      setStatus('ok', `Licao criada. ID: ${state.lesson.id}`);
+      updateControls();
+    } catch (error) {
+      setStatus('err', `Erro ao criar licao: ${error.message}`);
+    }
+  });
+
+  exerciseForm.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    if (!state.lesson) {
+      setStatus('err', 'Crie a licao antes de salvar a pergunta.');
+      return;
+    }
+
+    const data = new FormData(exerciseForm);
+    const optionTexts = data.getAll('optionText')
+      .map((text) => String(text).trim())
+      .filter(Boolean);
+    const correctIndex = Number(data.get('correctOption') || 0);
+
+    if (optionTexts.length < 2) {
+      setStatus('err', 'Informe pelo menos duas alternativas.');
+      return;
+    }
+
+    if (correctIndex >= optionTexts.length) {
+      setStatus('err', 'A alternativa correta marcada esta vazia.');
+      return;
+    }
+
+    const options = optionTexts.map((text, index) => ({
+      text,
+      correct: index === correctIndex,
+      orderIndex: index
+    }));
+
+    const payload = {
+      prompt: field(exerciseForm, 'prompt'),
+      type: 'MULTIPLE_CHOICE',
+      correctAnswer: optionTexts[correctIndex],
+      orderIndex: state.lesson.exercises ? state.lesson.exercises.length : 0,
+      options
+    };
+
+    try {
+      setBusy(saveExerciseButton, true, 'Salvar multiple choice');
+      setStatus(null, 'Criando exercicio multiple choice...');
+      const exercise = await api(`/api/lessons/${state.lesson.id}/exercises`, {
+        method: 'POST',
+        body: JSON.stringify(payload)
+      });
+      state.currentExercise = exercise;
+
+      if (data.get('generateAudio')) {
+        const audioConfig = {
+          voice: field(exerciseForm, 'voice'),
+          language: field(exerciseForm, 'language')
+        };
+
+        setStatus(null, 'Gerando audio da pergunta...');
+        const promptAudio = await api(`/api/lessons/${state.lesson.id}/exercises/${exercise.id}/generate-prompt-audio`, {
+          method: 'POST',
+          body: JSON.stringify(audioConfig)
+        });
+        assertGenerated(promptAudio, 'Pergunta');
+
+        for (const option of exercise.options) {
+          setStatus(null, `Gerando audio da alternativa: ${option.text}`);
+          const optionAudio = await api(`/api/lessons/${state.lesson.id}/exercises/${exercise.id}/options/${option.id}/generate-audio`, {
+            method: 'POST',
+            body: JSON.stringify(audioConfig)
+          });
+          assertGenerated(optionAudio, `Alternativa ${option.text}`);
+        }
+      }
+
+      await refreshLesson();
+      exerciseForm.reset();
+      exerciseForm.elements.voice.value = 'en-US-JennyNeural';
+      exerciseForm.elements.language.value = 'en-US';
+      exerciseForm.elements.generateAudio.checked = true;
+      exerciseForm.elements.correctOption[0].checked = true;
+      setStatus('ok', 'Multiple choice salva. Confira os players de audio no preview.');
+    } catch (error) {
+      setStatus('err', `Erro no fluxo da multiple choice: ${error.message}`);
+      await refreshLesson().catch(() => undefined);
+    } finally {
+      setBusy(saveExerciseButton, false, 'Salvar multiple choice');
+    }
+  });
+
+  publishButton.addEventListener('click', async () => {
+    if (!state.lesson) {
+      return;
+    }
+
+    try {
+      publishButton.disabled = true;
+      setStatus(null, 'Publicando licao...');
+      state.lesson = await api(`/api/lessons/${state.lesson.id}/publish`, { method: 'PATCH' });
+      setStatus('ok', 'Licao publicada.');
+      updateControls();
+    } catch (error) {
+      setStatus('err', `Erro ao publicar licao: ${error.message}`);
+    } finally {
+      updateControls();
+    }
+  });
+
+  newLessonButton.addEventListener('click', () => {
+    state.lesson = null;
+    state.currentExercise = null;
+    lessonForm.reset();
+    exerciseForm.reset();
+    lessonForm.elements.stageRequired.value = '1';
+    exerciseForm.elements.voice.value = 'en-US-JennyNeural';
+    exerciseForm.elements.language.value = 'en-US';
+    exerciseForm.elements.generateAudio.checked = true;
+    exerciseForm.elements.correctOption[0].checked = true;
+    setStatus(null, 'Crie uma licao para liberar o cadastro da pergunta.');
+    updateControls();
+  });
+
+  updateControls();
+</script>
+</body>
+</html>

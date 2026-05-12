@@ -20,9 +20,9 @@ server:
 
 app:
   r2:
-    endpoint: ${R2_ENDPOINT:http://localhost:9000}
-    access-key-id: ${R2_ACCESS_KEY_ID:dev-access-key}
-    secret-access-key: ${R2_SECRET_ACCESS_KEY:dev-secret-key}
+    endpoint: ${R2_ENDPOINT:https://347d545d880591596db81a59294b68e4.r2.cloudflarestorage.com}
+    access-key-id: ${R2_ACCESS_KEY_ID:9e66f3d50ddd5d7fff9a5aa52558b083}
+    secret-access-key: ${R2_SECRET_ACCESS_KEY:79702cb2d6bb35246811fb98e0f9e1507e11bd1659da90f80a78e70c96db2c1c}
     bucket: ${R2_BUCKET:english-game-audios}
     public-base-url: ${R2_PUBLIC_BASE_URL:http://localhost:9000/english-game-audios}
   tts:
