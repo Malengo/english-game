@@ -1,0 +1,31 @@
+spring:
+  application:
+    name: english-game-backend
+  datasource:
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/english_game}
+    username: ${DATABASE_USERNAME:postgres}
+    password: ${DATABASE_PASSWORD:4278}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+  flyway:
+    enabled: true
+
+server:
+  port: ${SERVER_PORT:8082}
+
+app:
+  r2:
+    endpoint: ${R2_ENDPOINT:http://localhost:9000}
+    access-key-id: ${R2_ACCESS_KEY_ID:dev-access-key}
+    secret-access-key: ${R2_SECRET_ACCESS_KEY:dev-secret-key}
+    bucket: ${R2_BUCKET:english-game-audios}
+    public-base-url: ${R2_PUBLIC_BASE_URL:http://localhost:9000/english-game-audios}
+  tts:
+    python-command: ${TTS_PYTHON_COMMAND:python}
+    script-path: ${TTS_SCRIPT_PATH:scripts/generate_audio.py}
+    temp-dir: ${TTS_TEMP_DIR:${java.io.tmpdir}/english-game-audios}
