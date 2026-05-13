@@ -7,6 +7,7 @@ import { locations } from "../data/locationConfig";
 import { npcConfigs } from "../data/npcConfig";
 import { lessonMissionCatalog, buildLessonMissionCollectibles, getLatestLessonMissionForLesson, getLessonMissionsByLessonId } from "../data/lessonMissionCatalog";
 import { getNextPendingLessonForLocation } from "../data/lessonCatalog";
+import { useLessonCatalog } from "../hooks/useLessonCatalog";
 import Player from "../components/Player";
 import Npc from "../components/Npc";
 import FloatingJoystick from "../components/FloatingJoystick";
@@ -66,7 +67,6 @@ const collisionLayers = victorianMapData.layers.filter((layer) => {
     const layerName = layer.name?.toLowerCase() ?? "";
     return layer.type === "objectgroup" && layerName.includes("collision");
 });
-
 
 const collisionShapes = collisionLayers
     .flatMap((layer) => layer.objects ?? [])
@@ -322,6 +322,8 @@ function isMapLessonMission(mission) {
 }
 
 export default function MapScreen({ navigation }) {
+    // Ensure lesson catalog loads and updates trigger re-render.
+    useLessonCatalog();
     const { width: viewportWidth, height: viewportHeight } = useWindowDimensions();
     const [position, setPosition] = useState(INITIAL_POSITION);
     const [lastDirection, setLastDirection] = useState("down");
@@ -942,7 +944,6 @@ export default function MapScreen({ navigation }) {
         playerHeadX,
         playerHeadY
     );
-
 
     useEffect(() => {
         if (!unlockedLessonMission || !activeLessonMissionCollectibles.length) return;

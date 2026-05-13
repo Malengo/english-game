@@ -9,6 +9,7 @@ import java.util.UUID;
 public record ExerciseResponse(
         UUID id,
         String prompt,
+        String emoji,
         String promptAudioUrl,
         ExerciseType type,
         String correctAnswer,
@@ -19,6 +20,7 @@ public record ExerciseResponse(
         return new ExerciseResponse(
                 exercise.getId(),
                 exercise.getPrompt(),
+                exercise.getEmoji(),
                 exercise.getPromptAudio() == null ? null : exercise.getPromptAudio().getPublicUrl(),
                 exercise.getType(),
                 exercise.getCorrectAnswer(),

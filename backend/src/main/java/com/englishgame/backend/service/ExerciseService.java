@@ -56,6 +56,7 @@ public class ExerciseService {
 
     private void applyRequest(Exercise exercise, ExerciseRequest request) {
         exercise.setPrompt(request.prompt());
+        exercise.setEmoji(request.emoji());
         exercise.setType(request.type());
         exercise.setCorrectAnswer(request.correctAnswer());
         exercise.setOrderIndex(request.orderIndex());

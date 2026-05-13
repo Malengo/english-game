@@ -1,28 +1,49 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { View, Text, TouchableOpacity, ScrollView } from "react-native";
 import { markLocationCompleted, markSchoolVisited, markLessonCompleted } from "../utils/progressStorage";
 import { getFirstLessonForLocation, getLessonById, getNextLessonInLocation } from "../data/lessonCatalog";
+import { useLessonCatalog } from "../hooks/useLessonCatalog";
+import { playCachedAudio } from "../utils/audioPlayer";
 
 const LOCATION_ID = "school";
 
 export default function SchoolMissionScreen({ navigation, route }) {
+  const { loading: lessonsLoading, error: lessonsError, version } = useLessonCatalog();
   const autoStart = route?.params?.autoStart;
   const lessonId = route?.params?.lessonId ?? getFirstLessonForLocation(LOCATION_ID)?.id;
-  const lesson = useMemo(() => getLessonById(lessonId), [lessonId]);
+  const lesson = useMemo(() => getLessonById(lessonId), [lessonId, version]);
   const [questionIndex, setQuestionIndex] = useState(0);
   const [selectedOptionIndex, setSelectedOptionIndex] = useState(null);
   const [isAnswerCorrect, setIsAnswerCorrect] = useState(false);
   const [feedbackMessage, setFeedbackMessage] = useState(lesson?.introMessage ?? "");
   const [isCompleting, setIsCompleting] = useState(false);
 
+  useEffect(() => {
+    setQuestionIndex(0);
+    setSelectedOptionIndex(null);
+    setIsAnswerCorrect(false);
+    setFeedbackMessage(lesson?.introMessage ?? "");
+    setIsCompleting(false);
+  }, [lesson?.id]);
+
   const questions = lesson?.questions ?? [];
   const currentQuestion = questions[questionIndex];
   const isLastQuestion = questionIndex === questions.length - 1;
+
+  useEffect(() => {
+    if (!currentQuestion?.promptAudioUrl) return;
+    void playCachedAudio(currentQuestion.promptAudioUrl);
+  }, [currentQuestion?.promptAudioUrl, questionIndex, lesson?.id]);
 
   const handleSelectOption = (optionIndex) => {
     if (isAnswerCorrect || isCompleting || !currentQuestion) return;
 
     setSelectedOptionIndex(optionIndex);
+
+    const selectedOption = currentQuestion.options?.[optionIndex];
+    if (selectedOption?.audioUrl) {
+      void playCachedAudio(selectedOption.audioUrl);
+    }
 
     if (optionIndex === currentQuestion.correctIndex) {
       setIsAnswerCorrect(true);
@@ -74,10 +95,20 @@ export default function SchoolMissionScreen({ navigation, route }) {
     }
   };
 
+  if (!lesson && lessonsLoading) {
+    return (
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#FFF8E1", padding: 20 }}>
+        <Text style={{ fontSize: 20, fontWeight: "bold", marginBottom: 12 }}>Carregando licao...</Text>
+      </View>
+    );
+  }
+
   if (!lesson || !currentQuestion) {
     return (
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#FFF8E1", padding: 20 }}>
-        <Text style={{ fontSize: 20, fontWeight: "bold", marginBottom: 12 }}>Licao nao encontrada</Text>
+        <Text style={{ fontSize: 20, fontWeight: "bold", marginBottom: 12 }}>
+          {lessonsError ? "Falha ao carregar a licao" : "Licao nao encontrada"}
+        </Text>
         <TouchableOpacity
           onPress={() => navigation.goBack()}
           accessibilityRole="button"
@@ -136,6 +167,25 @@ export default function SchoolMissionScreen({ navigation, route }) {
             <Text style={{ fontSize: 15, textAlign: "center", color: "#607D8B", lineHeight: 22 }}>
               {currentQuestion.helperText}
             </Text>
+            {currentQuestion.promptAudioUrl && (
+              <TouchableOpacity
+                onPress={() => void playCachedAudio(currentQuestion.promptAudioUrl)}
+                accessibilityRole="button"
+                accessibilityLabel="Ouvir novamente"
+                style={{
+                  alignSelf: "center",
+                  marginTop: 10,
+                  backgroundColor: "#E3F2FD",
+                  borderRadius: 12,
+                  paddingVertical: 8,
+                  paddingHorizontal: 16,
+                  borderWidth: 1,
+                  borderColor: "#90CAF9",
+                }}
+              >
+                <Text style={{ color: "#1E88E5", fontWeight: "bold" }}>Ouvir novamente</Text>
+              </TouchableOpacity>
+            )}
           </View>
 
           <View style={{ marginBottom: 16 }}>
@@ -157,7 +207,7 @@ export default function SchoolMissionScreen({ navigation, route }) {
                     alignItems: "center",
                     backgroundColor: isSuccessSelection ? "#E8F5E9" : isWrongSelection ? "#FFEBEE" : "#FFFFFF",
                     borderWidth: 3,
-                    borderColor: isSuccessSelection ? "#2E7D32" : isWrongSelection ? "#C62828" : option.color,
+                    borderColor: isSuccessSelection ? "#2E7D32" : isWrongSelection ? "#C62828" : option.label.toLowerCase(),
                     borderRadius: 18,
                     paddingHorizontal: 16,
                     paddingVertical: 14,
@@ -169,7 +219,7 @@ export default function SchoolMissionScreen({ navigation, route }) {
                       width: 26,
                       height: 26,
                       borderRadius: 13,
-                      backgroundColor: option.color,
+                      backgroundColor: option.label.toLowerCase(),
                       marginRight: 14,
                     }}
                   />

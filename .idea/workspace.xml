@@ -4,27 +4,70 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="394fa644-f945-4215-9278-32d627b1c689" name="Changes" comment="monorepo">
-      <change afterPath="$PROJECT_DIR$/backend/src/main/java/com/englishgame/backend/controller/UiController.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/src/main/resources/static/create-lesson.html" afterDir="false" />
+    <list default="true" id="394fa644-f945-4215-9278-32d627b1c689" name="Changes" comment="backend upando licoes e audio">
+      <change afterPath="$PROJECT_DIR$/app/src/hooks/useLessonCatalog.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/src/services/apiConfig.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/src/services/lessonService.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/src/utils/audioPlayer.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backend/src/main/java/com/englishgame/backend/controller/EmojiController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backend/src/main/resources/db/migration/V3__add_emoji_to_exercises.sql" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/backend/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/englishgame/backend/controller/ExerciseController.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/englishgame/backend/controller/ExerciseController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/englishgame/backend/controller/LessonController.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/englishgame/backend/controller/LessonController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/englishgame/backend/controller/LessonItemController.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/englishgame/backend/controller/LessonItemController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/englishgame/backend/dto/ExerciseOptionResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/englishgame/backend/dto/ExerciseOptionResponse.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/app.json" beforeDir="false" afterPath="$PROJECT_DIR$/app/app.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/jest.setup.js" beforeDir="false" afterPath="$PROJECT_DIR$/app/jest.setup.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/app/package-lock.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/app/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/data/lessonCatalog.js" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/data/lessonCatalog.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/screens/BakeryMissionScreen.js" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/screens/BakeryMissionScreen.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/screens/HouseMissionScreen.js" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/screens/HouseMissionScreen.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/screens/MapScreen.js" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/screens/MapScreen.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/screens/SchoolMissionScreen.js" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/screens/SchoolMissionScreen.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/englishgame/backend/config/SecurityConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/englishgame/backend/config/SecurityConfig.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/englishgame/backend/dto/ExerciseRequest.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/englishgame/backend/dto/ExerciseRequest.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/englishgame/backend/dto/ExerciseResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/englishgame/backend/dto/ExerciseResponse.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/englishgame/backend/entity/Exercise.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/englishgame/backend/entity/Exercise.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/englishgame/backend/entity/ExerciseOption.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/englishgame/backend/entity/ExerciseOption.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/englishgame/backend/repository/ExerciseOptionRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/englishgame/backend/repository/ExerciseOptionRepository.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/englishgame/backend/repository/ExerciseRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/englishgame/backend/repository/ExerciseRepository.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/englishgame/backend/service/AudioGenerationService.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/englishgame/backend/service/AudioGenerationService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/englishgame/backend/service/ExerciseService.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/englishgame/backend/service/ExerciseService.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/backend/src/main/resources/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/resources/application.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/resources/static/create-lesson.html" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/resources/static/create-lesson.html" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="CopilotChats">
+    <option name="panelChat">
+      <chat>
+        <option name="activeSessionId" value="85f66a22-5fa3-46ec-906c-59f2452c6a5a" />
+        <option name="sessions">
+          <session>
+            <option name="chatType" value="PANEL" />
+            <option name="id" value="0aa87378-7a3e-44d5-9ccd-14096b938e63" />
+            <option name="modeId" value="Agent" />
+            <option name="modelType" value="builtin_family" />
+            <option name="modelValue" value="gpt-5.2-codex" />
+            <option name="status" value="Completed" />
+            <option name="targetType" value="LOCAL" />
+          </session>
+          <session>
+            <option name="chatType" value="PANEL" />
+            <option name="id" value="f897029d-3945-412b-9717-aa94bf5db07d" />
+            <option name="modeId" value="Agent" />
+            <option name="modelType" value="builtin_family" />
+            <option name="modelValue" value="gpt-5.2-codex" />
+            <option name="targetType" value="LOCAL" />
+          </session>
+          <session>
+            <option name="chatType" value="PANEL" />
+            <option name="id" value="85f66a22-5fa3-46ec-906c-59f2452c6a5a" />
+            <option name="modeId" value="Agent" />
+            <option name="modelType" value="builtin_family" />
+            <option name="modelValue" value="gpt-5.2-codex" />
+            <option name="targetType" value="LOCAL" />
+          </session>
+        </option>
+        <option name="type" value="PANEL" />
+      </chat>
+    </option>
   </component>
   <component name="CopilotPersistence">
     <persistenceIdMap>
@@ -32,7 +75,7 @@
     </persistenceIdMap>
   </component>
   <component name="CopilotUserSelectedChatMode">
-    <option name="chatModeId" value="file:///c%3A/snapshot/copilot-intellij/dist/assets/agents/Plan.agent.md" />
+    <option name="chatModeId" value="Agent" />
   </component>
   <component name="CopilotUserSelectedModel">
     <selectedModels>
@@ -64,39 +107,43 @@
   &quot;associatedIndex&quot;: 3
 }</component>
   <component name="ProjectId" id="3DaDFDRiNqHaw4RmZENucTA6bQJ" />
+  <component name="ProjectLevelVcsManager">
+    <ConfirmationsSetting value="2" id="Add" />
+  </component>
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "Docker.Unnamed.executor": "Run",
-    "Maven. [spring-boot:run].executor": "Run",
-    "ModuleVcsDetector.initialDetectionPerformed": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
-    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
-    "Spring Boot.Unnamed.executor": "Debug",
-    "codeWithMe.voiceChat.enabledByDefault": "false",
-    "deletionFromPopupRequiresConfirmation": "false",
-    "git-widget-placeholder": "master",
-    "ignore.virus.scanning.warn.message": "true",
-    "kotlin-language-version-configured": "true",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Docker.Unnamed.executor&quot;: &quot;Run&quot;,
+    &quot;Maven. [spring-boot:run].executor&quot;: &quot;Run&quot;,
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
+    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
+    &quot;Spring Boot.Unnamed.executor&quot;: &quot;Debug&quot;,
+    &quot;codeWithMe.voiceChat.enabledByDefault&quot;: &quot;false&quot;,
+    &quot;deletionFromPopupRequiresConfirmation&quot;: &quot;false&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
+    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
+    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;ts.external.directory.path&quot;: &quot;C:\\Users\\josem\\Documents\\estudos\\english-game\\app\\node_modules\\typescript\\lib&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   },
-  "keyToStringList": {
-    "DatabaseDriversLRU": [
-      "postgresql"
+  &quot;keyToStringList&quot;: {
+    &quot;DatabaseDriversLRU&quot;: [
+      &quot;postgresql&quot;
     ]
   }
-}]]></component>
+}</component>
   <component name="RunManager">
     <configuration name="Unnamed" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
       <module name="english-game" />
@@ -117,7 +164,10 @@
       <workItem from="1778518258360" duration="1126000" />
       <workItem from="1778590839891" duration="419000" />
       <workItem from="1778591431241" duration="5944000" />
-      <workItem from="1778599408837" duration="1821000" />
+      <workItem from="1778599408837" duration="3024000" />
+      <workItem from="1778607380255" duration="212000" />
+      <workItem from="1778616972361" duration="4033000" />
+      <workItem from="1778683801046" duration="7486000" />
     </task>
     <task id="LOCAL-00001" summary="monorepo">
       <option name="closed" value="true" />
@@ -127,7 +177,15 @@
       <option name="project" value="LOCAL" />
       <updated>1778596359546</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="backend upando licoes e audio">
+      <option name="closed" value="true" />
+      <created>1778606092013</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1778606092013</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -135,7 +193,8 @@
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="monorepo" />
-    <option name="LAST_COMMIT_MESSAGE" value="monorepo" />
+    <MESSAGE value="backend upando licoes e audio" />
+    <option name="LAST_COMMIT_MESSAGE" value="backend upando licoes e audio" />
   </component>
   <component name="github-copilot-workspace">
     <instructionFileLocations>

@@ -224,6 +224,33 @@
       white-space: pre-wrap;
     }
 
+    .emoji-picker {
+      display: grid;
+      gap: 8px;
+    }
+
+    .emoji-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
+      gap: 8px;
+    }
+
+    .emoji-button {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+      background: #f8fafc;
+      font-size: 20px;
+      cursor: pointer;
+    }
+
+    .emoji-button.selected {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px rgba(8, 127, 91, 0.18);
+      background: #eef6f2;
+    }
+
     @media (max-width: 900px) {
       .layout, .row, .option-row { grid-template-columns: 1fr; }
       .summary { position: static; }
@@ -285,6 +312,14 @@
         <p class="muted">Preencha a pergunta e as alternativas. Ao salvar, o backend cria o exercicio e gera o audio da pergunta e das alternativas.</p>
 
         <form id="exerciseForm">
+          <div class="emoji-picker">
+            <label>Emoji da pergunta
+              <input name="emoji" id="emojiInput" readonly placeholder="Selecione um emoji">
+            </label>
+            <div id="emojiGrid" class="emoji-grid"></div>
+            <span id="emojiHint" class="muted">Carregando emojis...</span>
+          </div>
+
           <label>Pergunta *
             <textarea name="prompt" required placeholder="What color is the book?"></textarea>
           </label>
@@ -393,6 +428,9 @@
   const statusEl = document.getElementById('status');
   const jsonPreview = document.getElementById('jsonPreview');
   const audioPreview = document.getElementById('audioPreview');
+  const emojiGrid = document.getElementById('emojiGrid');
+  const emojiInput = document.getElementById('emojiInput');
+  const emojiHint = document.getElementById('emojiHint');
 
   function field(form, name) {
     const raw = new FormData(form).get(name);
@@ -560,6 +598,7 @@
 
     const payload = {
       prompt: field(exerciseForm, 'prompt'),
+      emoji: field(exerciseForm, 'emoji'),
       type: 'MULTIPLE_CHOICE',
       correctAnswer: optionTexts[correctIndex],
       orderIndex: state.lesson.exercises ? state.lesson.exercises.length : 0,
@@ -600,6 +639,8 @@
 
       await refreshLesson();
       exerciseForm.reset();
+      emojiGrid.querySelectorAll('.emoji-button').forEach((el) => el.classList.remove('selected'));
+      emojiInput.value = '';
       exerciseForm.elements.voice.value = 'en-US-JennyNeural';
       exerciseForm.elements.language.value = 'en-US';
       exerciseForm.elements.generateAudio.checked = true;
@@ -641,10 +682,46 @@
     exerciseForm.elements.language.value = 'en-US';
     exerciseForm.elements.generateAudio.checked = true;
     exerciseForm.elements.correctOption[0].checked = true;
+    emojiGrid.querySelectorAll('.emoji-button').forEach((el) => el.classList.remove('selected'));
+    emojiInput.value = '';
     setStatus(null, 'Crie uma licao para liberar o cadastro da pergunta.');
     updateControls();
   });
 
+  function renderEmojiPicker(emojis) {
+    emojiGrid.innerHTML = '';
+    if (!Array.isArray(emojis) || emojis.length === 0) {
+      emojiHint.textContent = 'Nenhum emoji disponivel.';
+      return;
+    }
+
+    emojiHint.textContent = 'Selecione um emoji para a pergunta.';
+
+    emojis.forEach((emoji) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'emoji-button';
+      button.textContent = emoji;
+      button.addEventListener('click', () => {
+        emojiInput.value = emoji;
+        emojiGrid.querySelectorAll('.emoji-button').forEach((el) => el.classList.remove('selected'));
+        button.classList.add('selected');
+      });
+      emojiGrid.appendChild(button);
+    });
+  }
+
+  async function loadEmojis() {
+    try {
+      const emojis = await api('/api/emojis');
+      renderEmojiPicker(emojis);
+    } catch (error) {
+      emojiHint.textContent = 'Falha ao carregar emojis.';
+    }
+  }
+
+  loadEmojis();
+  setStatus(null, 'Crie uma licao para liberar o cadastro da pergunta.');
   updateControls();
 </script>
 </body>

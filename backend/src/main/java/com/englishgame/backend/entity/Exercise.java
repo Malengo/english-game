@@ -29,6 +29,9 @@ public class Exercise {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String prompt;
 
+    @Column(columnDefinition = "TEXT")
+    private String emoji;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "prompt_audio_id")
     private AudioAsset promptAudio;
@@ -72,6 +75,14 @@ public class Exercise {
 
     public void setPrompt(String prompt) {
         this.prompt = prompt;
+    }
+
+    public String getEmoji() {
+        return emoji;
+    }
+
+    public void setEmoji(String emoji) {
+        this.emoji = emoji;
     }
 
     public AudioAsset getPromptAudio() {

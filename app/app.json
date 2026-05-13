@@ -7,7 +7,6 @@
     "icon": "./assets/images/icon.png",
     "scheme": "englishgame",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
     "ios": {
       "supportsTablet": true
     },
@@ -18,7 +17,6 @@
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
-      "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
       "package": "com.malengo.englishgame"
     },
@@ -40,12 +38,14 @@
       ],
       "expo-font",
       "expo-image",
-      "expo-web-browser"
+      "expo-web-browser",
+      "expo-audio"
     ],
     "experiments": {
       "reactCompiler": true
     },
     "extra": {
+      "backendUrl": "http://192.168.0.17:8082",
       "eas": {
         "projectId": "33dfa2c8-ec28-40d0-8458-fff3ca32d13b"
       }

@@ -21,6 +21,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.GET, "/api/lessons/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/audios/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/emojis").permitAll()
                         .anyRequest().permitAll()
                 )
                 .httpBasic(Customizer.withDefaults())

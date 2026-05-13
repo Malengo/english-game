@@ -1,28 +1,49 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { View, Text, TouchableOpacity, ScrollView } from "react-native";
 import { markLocationCompleted, markLessonCompleted } from "../utils/progressStorage";
 import { getFirstLessonForLocation, getLessonById, getNextLessonInLocation } from "../data/lessonCatalog";
+import { useLessonCatalog } from "../hooks/useLessonCatalog";
+import { playCachedAudio } from "../utils/audioPlayer";
 
 const LOCATION_ID = "house";
 
 export default function HouseMissionScreen({ navigation, route }) {
+  const { loading: lessonsLoading, error: lessonsError, version } = useLessonCatalog();
   const autoStart = route?.params?.autoStart;
   const lessonId = route?.params?.lessonId ?? getFirstLessonForLocation(LOCATION_ID)?.id;
-  const lesson = useMemo(() => getLessonById(lessonId), [lessonId]);
+  const lesson = useMemo(() => getLessonById(lessonId), [lessonId, version]);
   const [questionIndex, setQuestionIndex] = useState(0);
   const [selectedOptionIndex, setSelectedOptionIndex] = useState(null);
   const [isAnswerCorrect, setIsAnswerCorrect] = useState(false);
   const [feedbackMessage, setFeedbackMessage] = useState(lesson?.introMessage ?? "");
   const [isCompleting, setIsCompleting] = useState(false);
 
+  useEffect(() => {
+    setQuestionIndex(0);
+    setSelectedOptionIndex(null);
+    setIsAnswerCorrect(false);
+    setFeedbackMessage(lesson?.introMessage ?? "");
+    setIsCompleting(false);
+  }, [lesson?.id]);
+
   const questions = lesson?.questions ?? [];
   const currentQuestion = questions[questionIndex];
   const isLastQuestion = questionIndex === questions.length - 1;
+
+  useEffect(() => {
+    if (!currentQuestion?.promptAudioUrl) return;
+    void playCachedAudio(currentQuestion.promptAudioUrl);
+  }, [currentQuestion?.promptAudioUrl, questionIndex, lesson?.id]);
 
   const handleSelectOption = (optionIndex) => {
     if (isAnswerCorrect || isCompleting || !currentQuestion) return;
 
     setSelectedOptionIndex(optionIndex);
+
+    const selectedOption = currentQuestion.options?.[optionIndex];
+    if (selectedOption?.audioUrl) {
+      void playCachedAudio(selectedOption.audioUrl);
+    }
 
     if (optionIndex === currentQuestion.correctIndex) {
       setIsAnswerCorrect(true);
@@ -73,10 +94,20 @@ export default function HouseMissionScreen({ navigation, route }) {
     }
   };
 
+  if (!lesson && lessonsLoading) {
+    return (
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#FFF3E0", padding: 20 }}>
+        <Text style={{ fontSize: 20, fontWeight: "bold", marginBottom: 12 }}>Carregando licao...</Text>
+      </View>
+    );
+  }
+
   if (!lesson || !currentQuestion) {
     return (
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#FFF3E0", padding: 20 }}>
-        <Text style={{ fontSize: 20, fontWeight: "bold", marginBottom: 12 }}>Licao nao encontrada</Text>
+        <Text style={{ fontSize: 20, fontWeight: "bold", marginBottom: 12 }}>
+          {lessonsError ? "Falha ao carregar a licao" : "Licao nao encontrada"}
+        </Text>
         <TouchableOpacity
           onPress={() => navigation.goBack()}
           accessibilityRole="button"
@@ -109,6 +140,25 @@ export default function HouseMissionScreen({ navigation, route }) {
             <Text style={{ fontSize: 42, textAlign: "center", marginBottom: 8 }}>{currentQuestion.emoji}</Text>
             <Text style={{ fontSize: 22, fontWeight: "bold", textAlign: "center", color: "#263238", marginBottom: 6 }}>{currentQuestion.prompt}</Text>
             <Text style={{ fontSize: 15, textAlign: "center", color: "#607D8B", lineHeight: 22 }}>{currentQuestion.helperText}</Text>
+            {currentQuestion.promptAudioUrl && (
+              <TouchableOpacity
+                onPress={() => void playCachedAudio(currentQuestion.promptAudioUrl)}
+                accessibilityRole="button"
+                accessibilityLabel="Ouvir novamente"
+                style={{
+                  alignSelf: "center",
+                  marginTop: 10,
+                  backgroundColor: "#E3F2FD",
+                  borderRadius: 12,
+                  paddingVertical: 8,
+                  paddingHorizontal: 16,
+                  borderWidth: 1,
+                  borderColor: "#90CAF9",
+                }}
+              >
+                <Text style={{ color: "#1E88E5", fontWeight: "bold" }}>Ouvir novamente</Text>
+              </TouchableOpacity>
+            )}
           </View>
 
           <View style={{ marginBottom: 16 }}>
