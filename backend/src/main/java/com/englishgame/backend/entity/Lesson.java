@@ -7,6 +7,8 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
@@ -55,6 +57,9 @@ public class Lesson {
 
     @OneToMany(mappedBy = "lesson", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Exercise> exercises = new ArrayList<>();
+
+    @OneToOne(mappedBy = "lesson", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private LessonMission mission;
 
     @PrePersist
     void prePersist() {
@@ -149,5 +154,13 @@ public class Lesson {
 
     public List<Exercise> getExercises() {
         return exercises;
+    }
+
+    public LessonMission getMission() {
+        return mission;
+    }
+
+    public void setMission(LessonMission mission) {
+        this.mission = mission;
     }
 }

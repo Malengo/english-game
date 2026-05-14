@@ -187,6 +187,17 @@
       top: 16px;
     }
 
+    .mission-panel {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px;
+      background: #fbfcfe;
+    }
+
+    .mission-panel.disabled {
+      opacity: 0.7;
+    }
+
     .audio-list {
       display: grid;
       gap: 12px;
@@ -297,6 +308,34 @@
             <input name="topic" maxlength="80" placeholder="colors">
           </label>
 
+          <div class="mission-panel" id="missionPanel">
+            <label>
+              <span>
+                <input type="checkbox" name="hasMission" id="hasMission">
+                Licao possui missao
+              </span>
+            </label>
+
+            <div class="row">
+              <label>Tipo da missao
+                <select name="missionType" id="missionType" disabled>
+                  <option value="FIND">FIND</option>
+                </select>
+              </label>
+              <label>NPC ID
+                <input name="missionNpcId" id="missionNpcId" maxlength="80" placeholder="mage" disabled>
+              </label>
+            </div>
+
+            <label>Titulo da missao
+              <input name="missionTitle" id="missionTitle" maxlength="160" placeholder="Find the objects" disabled>
+            </label>
+
+            <label>Descricao da missao
+              <textarea name="missionDescription" id="missionDescription" maxlength="500" placeholder="Converse com o mage para desbloquear a missao." disabled></textarea>
+            </label>
+          </div>
+
           <div class="actions">
             <button type="submit">Criar licao</button>
             <button class="secondary" type="button" id="newLessonButton">Limpar fluxo</button>
@@ -406,6 +445,7 @@
     <aside class="section summary">
       <h2>Resumo e preview</h2>
       <div id="status" class="status">Crie uma licao para liberar o cadastro da pergunta.</div>
+      <div id="missionPreview" class="mission-panel" style="margin-top: 12px; display: none;"></div>
       <div id="audioPreview" class="audio-list"></div>
       <h3 style="margin-top:16px">JSON da licao</h3>
       <pre id="jsonPreview">{}</pre>
@@ -431,6 +471,13 @@
   const emojiGrid = document.getElementById('emojiGrid');
   const emojiInput = document.getElementById('emojiInput');
   const emojiHint = document.getElementById('emojiHint');
+  const hasMissionInput = document.getElementById('hasMission');
+  const missionPanel = document.getElementById('missionPanel');
+  const missionTypeInput = document.getElementById('missionType');
+  const missionTitleInput = document.getElementById('missionTitle');
+  const missionDescriptionInput = document.getElementById('missionDescription');
+  const missionNpcIdInput = document.getElementById('missionNpcId');
+  const missionPreview = document.getElementById('missionPreview');
 
   function field(form, name) {
     const raw = new FormData(form).get(name);
@@ -479,6 +526,42 @@
     lessonState.textContent = hasLesson ? `${state.lesson.title} (${state.lesson.status})` : 'Pendente';
     jsonPreview.textContent = JSON.stringify(state.lesson || {}, null, 2);
     renderAudioPreview();
+    renderMissionPreview();
+  }
+
+  function renderMissionPreview() {
+    const mission = state.lesson && state.lesson.mission ? state.lesson.mission : null;
+    if (!mission) {
+      missionPreview.style.display = 'none';
+      missionPreview.textContent = '';
+      return;
+    }
+
+    missionPreview.style.display = 'block';
+    missionPreview.innerHTML = `
+      <strong>Missao vinculada</strong>
+      <div class="muted">Tipo: ${escapeHtml(mission.type)}</div>
+      <div class="muted">Titulo: ${escapeHtml(mission.title)}</div>
+      ${mission.description ? `<div class="muted">Descricao: ${escapeHtml(mission.description)}</div>` : ''}
+      <div class="muted">NPC: ${escapeHtml(mission.npcId)}</div>
+    `;
+  }
+
+  function toggleMissionFields(enabled) {
+    missionPanel.classList.toggle('disabled', !enabled);
+    missionTypeInput.disabled = !enabled;
+    missionTitleInput.disabled = !enabled;
+    missionDescriptionInput.disabled = !enabled;
+    missionNpcIdInput.disabled = !enabled;
+    missionTypeInput.required = enabled;
+    missionTitleInput.required = enabled;
+    missionNpcIdInput.required = enabled;
+    if (!enabled) {
+      missionTypeInput.value = 'FIND';
+      missionTitleInput.value = '';
+      missionDescriptionInput.value = '';
+      missionNpcIdInput.value = '';
+    }
   }
 
   function renderAudioPreview() {
@@ -548,7 +631,13 @@
       description: field(lessonForm, 'description'),
       locationId: field(lessonForm, 'locationId'),
       stageRequired: field(lessonForm, 'stageRequired') ? Number(field(lessonForm, 'stageRequired')) : undefined,
-      topic: field(lessonForm, 'topic')
+      topic: field(lessonForm, 'topic'),
+      mission: hasMissionInput.checked ? compact({
+        type: field(lessonForm, 'missionType'),
+        title: field(lessonForm, 'missionTitle'),
+        description: field(lessonForm, 'missionDescription'),
+        npcId: field(lessonForm, 'missionNpcId')
+      }) : undefined
     });
 
     try {
@@ -560,6 +649,8 @@
       state.currentExercise = null;
       lessonForm.reset();
       lessonForm.elements.stageRequired.value = '1';
+      hasMissionInput.checked = false;
+      toggleMissionFields(false);
       setStatus('ok', `Licao criada. ID: ${state.lesson.id}`);
       updateControls();
     } catch (error) {
@@ -678,6 +769,8 @@
     lessonForm.reset();
     exerciseForm.reset();
     lessonForm.elements.stageRequired.value = '1';
+    hasMissionInput.checked = false;
+    toggleMissionFields(false);
     exerciseForm.elements.voice.value = 'en-US-JennyNeural';
     exerciseForm.elements.language.value = 'en-US';
     exerciseForm.elements.generateAudio.checked = true;
@@ -721,6 +814,10 @@
   }
 
   loadEmojis();
+  toggleMissionFields(false);
+  hasMissionInput.addEventListener('change', (event) => {
+    toggleMissionFields(event.target.checked);
+  });
   setStatus(null, 'Crie uma licao para liberar o cadastro da pergunta.');
   updateControls();
 </script>

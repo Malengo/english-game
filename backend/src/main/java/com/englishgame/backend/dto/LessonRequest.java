@@ -10,6 +10,7 @@ public record LessonRequest(
         String description,
         @Size(max = 80) String locationId,
         @Min(1) Integer stageRequired,
-        @Size(max = 80) String topic
+        @Size(max = 80) String topic,
+        LessonMissionRequest mission
 ) {
 }

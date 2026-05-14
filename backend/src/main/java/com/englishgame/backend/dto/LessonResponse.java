@@ -18,6 +18,7 @@ public record LessonResponse(
         LessonStatus status,
         List<LessonItemResponse> items,
         List<ExerciseResponse> exercises,
+        LessonMissionResponse mission,
         Instant createdAt,
         Instant updatedAt
 ) {
@@ -39,6 +40,7 @@ public record LessonResponse(
                         .sorted(Comparator.comparing(exercise -> exercise.getOrderIndex()))
                         .map(ExerciseResponse::from)
                         .toList(),
+                LessonMissionResponse.from(lesson.getMission()),
                 lesson.getCreatedAt(),
                 lesson.getUpdatedAt()
         );

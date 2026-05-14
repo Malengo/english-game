@@ -45,7 +45,7 @@
       "reactCompiler": true
     },
     "extra": {
-      "backendUrl": "http://192.168.0.17:8082",
+      "backendUrl": "http://192.168.0.16:8082",
       "eas": {
         "projectId": "33dfa2c8-ec28-40d0-8458-fff3ca32d13b"
       }

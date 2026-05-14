@@ -1,7 +1,9 @@
 package com.englishgame.backend.service;
 
+import com.englishgame.backend.dto.LessonMissionRequest;
 import com.englishgame.backend.dto.LessonRequest;
 import com.englishgame.backend.entity.Lesson;
+import com.englishgame.backend.entity.LessonMission;
 import com.englishgame.backend.entity.LessonStatus;
 import com.englishgame.backend.exception.BadRequestException;
 import com.englishgame.backend.exception.ResourceNotFoundException;
@@ -84,6 +86,30 @@ public class LessonService {
         lesson.setLocationId(request.locationId());
         lesson.setStageRequired(request.stageRequired() == null ? 1 : request.stageRequired());
         lesson.setTopic(request.topic());
+        applyMission(lesson, request.mission());
+    }
+
+    private void applyMission(Lesson lesson, LessonMissionRequest request) {
+        if (request == null) {
+            LessonMission existing = lesson.getMission();
+            if (existing != null) {
+                existing.setLesson(null);
+            }
+            lesson.setMission(null);
+            return;
+        }
+
+        LessonMission mission = lesson.getMission();
+        if (mission == null) {
+            mission = new LessonMission();
+            mission.setLesson(lesson);
+            lesson.setMission(mission);
+        }
+
+        mission.setTitle(request.title());
+        mission.setDescription(request.description());
+        mission.setNpcId(request.npcId());
+        mission.setType(request.type());
     }
 
     private String resolveSlug(LessonRequest request) {
