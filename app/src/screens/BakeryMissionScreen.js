@@ -4,6 +4,7 @@ import { markLocationCompleted, markLessonCompleted } from "../utils/progressSto
 import { getFirstLessonForLocation, getLessonById, getNextLessonInLocation } from "../data/lessonCatalog";
 import { useLessonCatalog } from "../hooks/useLessonCatalog";
 import { playCachedAudio } from "../utils/audioPlayer";
+import { showLessonMissionUnlockNotice } from "../utils/lessonMissionNotice";
 
 const LOCATION_ID = "bakery";
 
@@ -75,8 +76,15 @@ export default function BakeryMissionScreen({ navigation, route }) {
     setIsCompleting(true);
 
     try {
-      await markLocationCompleted(LOCATION_ID);
       await markLessonCompleted({ lessonId: lesson.id, locationId: LOCATION_ID });
+
+      if (lesson?.mission?.type) {
+        await showLessonMissionUnlockNotice(lesson);
+        navigation.goBack();
+        return;
+      }
+
+      await markLocationCompleted(LOCATION_ID);
 
       const nextLesson = getNextLessonInLocation(LOCATION_ID, lesson.id);
       if (nextLesson) {

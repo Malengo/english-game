@@ -5,28 +5,22 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="394fa644-f945-4215-9278-32d627b1c689" name="Changes" comment="backend upando licoes e audio">
-      <change afterPath="$PROJECT_DIR$/app/src/hooks/useLessonCatalog.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/app/src/services/apiConfig.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/app/src/services/lessonService.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/app/src/utils/audioPlayer.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/src/main/java/com/englishgame/backend/controller/EmojiController.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/src/main/resources/db/migration/V3__add_emoji_to_exercises.sql" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/LESSON_MISSIONS_CHANGES.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/src/utils/lessonMissionNotice.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/app.json" beforeDir="false" afterPath="$PROJECT_DIR$/app/app.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/jest.setup.js" beforeDir="false" afterPath="$PROJECT_DIR$/app/jest.setup.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/app/package-lock.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/app/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/data/__tests__/lessonMissionCatalog.test.js" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/data/__tests__/lessonMissionCatalog.test.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/src/data/lessonCatalog.js" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/data/lessonCatalog.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/data/lessonMissionCatalog.js" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/data/lessonMissionCatalog.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/missions/balloons/__tests__/buildBalloonCollectibles.test.js" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/missions/balloons/__tests__/buildBalloonCollectibles.test.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/missions/balloons/buildBalloonCollectibles.js" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/missions/balloons/buildBalloonCollectibles.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/src/screens/BakeryMissionScreen.js" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/screens/BakeryMissionScreen.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/src/screens/HouseMissionScreen.js" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/screens/HouseMissionScreen.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/src/screens/MapScreen.js" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/screens/MapScreen.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/src/screens/SchoolMissionScreen.js" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/screens/SchoolMissionScreen.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/englishgame/backend/config/SecurityConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/englishgame/backend/config/SecurityConfig.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/englishgame/backend/dto/ExerciseRequest.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/englishgame/backend/dto/ExerciseRequest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/englishgame/backend/dto/ExerciseResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/englishgame/backend/dto/ExerciseResponse.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/englishgame/backend/entity/Exercise.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/englishgame/backend/entity/Exercise.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/englishgame/backend/dto/ExerciseOptionRequest.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/englishgame/backend/dto/ExerciseOptionRequest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/englishgame/backend/dto/ExerciseOptionResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/englishgame/backend/dto/ExerciseOptionResponse.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/englishgame/backend/entity/ExerciseOption.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/englishgame/backend/entity/ExerciseOption.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/englishgame/backend/service/ExerciseService.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/englishgame/backend/service/ExerciseService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/resources/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/resources/application.yml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/backend/src/main/resources/static/create-lesson.html" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/resources/static/create-lesson.html" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -37,7 +31,7 @@
   <component name="CopilotChats">
     <option name="panelChat">
       <chat>
-        <option name="activeSessionId" value="85f66a22-5fa3-46ec-906c-59f2452c6a5a" />
+        <option name="activeSessionId" value="4b2a63b3-3026-4cc9-bf05-f1b0c10cffad" />
         <option name="sessions">
           <session>
             <option name="chatType" value="PANEL" />
@@ -62,6 +56,57 @@
             <option name="modeId" value="Agent" />
             <option name="modelType" value="builtin_family" />
             <option name="modelValue" value="gpt-5.2-codex" />
+            <option name="targetType" value="LOCAL" />
+          </session>
+          <session>
+            <option name="chatType" value="PANEL" />
+            <option name="id" value="a6cf9ddb-b847-4e10-a896-4f77b21b177c" />
+            <option name="modeId" value="Agent" />
+            <option name="modelType" value="builtin_family" />
+            <option name="modelValue" value="gpt-5.2-codex" />
+            <option name="status" value="Completed" />
+            <option name="targetType" value="LOCAL" />
+          </session>
+          <session>
+            <option name="chatType" value="PANEL" />
+            <option name="id" value="eb26e196-38c6-405c-bd17-6ccf5705a396" />
+            <option name="modeId" value="file:///c%3A/snapshot/cls-source/dist/assets/agents/Plan.agent.md" />
+            <option name="modelType" value="builtin_family" />
+            <option name="modelValue" value="auto" />
+            <option name="targetType" value="LOCAL" />
+          </session>
+          <session>
+            <option name="chatType" value="PANEL" />
+            <option name="id" value="a74f232e-bc10-4b5a-b734-e75c652b63ac" />
+            <option name="modeId" value="file:///c%3A/snapshot/cls-source/dist/assets/agents/Plan.agent.md" />
+            <option name="modelType" value="builtin_family" />
+            <option name="modelValue" value="gpt-5.2-codex" />
+            <option name="targetType" value="LOCAL" />
+          </session>
+          <session>
+            <option name="chatType" value="PANEL" />
+            <option name="id" value="08891731-72e5-4996-813a-71176e69d57c" />
+            <option name="modeId" value="file:///c%3A/snapshot/cls-source/dist/assets/agents/Plan.agent.md" />
+            <option name="modelType" value="builtin_family" />
+            <option name="modelValue" value="gpt-5.2-codex" />
+            <option name="targetType" value="LOCAL" />
+          </session>
+          <session>
+            <option name="chatType" value="PANEL" />
+            <option name="id" value="f0bcd03e-fe25-488f-a20e-13958c8179c3" />
+            <option name="modeId" value="Agent" />
+            <option name="modelType" value="builtin_family" />
+            <option name="modelValue" value="gpt-5.2-codex" />
+            <option name="status" value="Completed" />
+            <option name="targetType" value="LOCAL" />
+          </session>
+          <session>
+            <option name="chatType" value="PANEL" />
+            <option name="id" value="4b2a63b3-3026-4cc9-bf05-f1b0c10cffad" />
+            <option name="modeId" value="Agent" />
+            <option name="modelType" value="builtin_family" />
+            <option name="modelValue" value="gpt-5.2-codex" />
+            <option name="status" value="Completed" />
             <option name="targetType" value="LOCAL" />
           </session>
         </option>
@@ -109,6 +154,20 @@
   <component name="ProjectId" id="3DaDFDRiNqHaw4RmZENucTA6bQJ" />
   <component name="ProjectLevelVcsManager">
     <ConfirmationsSetting value="2" id="Add" />
+  </component>
+  <component name="ProjectSessionTemplates">
+    <option name="panelTemplate">
+      <template>
+        <option name="modeId" value="file:///c%3A/snapshot/cls-source/dist/assets/agents/Plan.agent.md" />
+        <option name="model">
+          <model>
+            <option name="modelType" value="builtin_family" />
+            <option name="modelValue" value="gpt-5.2-codex" />
+          </model>
+        </option>
+        <option name="targetType" value="LOCAL" />
+      </template>
+    </option>
   </component>
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
@@ -168,6 +227,9 @@
       <workItem from="1778607380255" duration="212000" />
       <workItem from="1778616972361" duration="4033000" />
       <workItem from="1778683801046" duration="7486000" />
+      <workItem from="1778778371125" duration="1951000" />
+      <workItem from="1778789295894" duration="1222000" />
+      <workItem from="1778844506114" duration="4173000" />
     </task>
     <task id="LOCAL-00001" summary="monorepo">
       <option name="closed" value="true" />
@@ -185,7 +247,15 @@
       <option name="project" value="LOCAL" />
       <updated>1778606092013</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="backend upando licoes e audio">
+      <option name="closed" value="true" />
+      <created>1778770939046</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1778770939046</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">

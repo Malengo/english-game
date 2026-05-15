@@ -17,5 +17,7 @@ describe("buildBalloonCollectibles", () => {
       schoolColorsBalloonMission.spawnRules.minTargetCount
     );
     expect(collectibles.some((collectible) => !collectible.isTarget)).toBe(true);
+    expect(new Set(collectibles.map((collectible) => collectible.color)).size).toBeGreaterThan(1);
+    expect(collectibles.every((collectible) => typeof collectible.color === "string")).toBe(true);
   });
 });

@@ -44,7 +44,19 @@ function notifyCatalogUpdate() {
   listeners.forEach((listener) => listener(catalogState.version));
 }
 
-function resolveOptionColor(optionText, localQuestion, index) {
+function resolveOptionLabel(option) {
+  return String(option?.label ?? option?.text ?? option?.value ?? "").trim();
+}
+
+function resolveRemoteOptionColor(option) {
+  return option?.color ?? option?.colorHex ?? option?.hexColor ?? option?.backgroundColor ?? null;
+}
+
+function resolveOptionColor(option, localQuestion, index) {
+  const optionText = resolveOptionLabel(option);
+  const remoteColor = resolveRemoteOptionColor(option);
+  if (typeof remoteColor === "string" && remoteColor.trim()) return remoteColor.trim();
+
   const match = (localQuestion?.options ?? []).find((option) =>
     String(option?.label ?? "").toLowerCase() === String(optionText ?? "").toLowerCase()
   );
@@ -58,7 +70,7 @@ function resolveCorrectIndex(options, correctAnswer) {
   if (correctOptionIndex >= 0) return correctOptionIndex;
 
   if (correctAnswer) {
-    const answerIndex = options.findIndex((option) => option.text === correctAnswer);
+    const answerIndex = options.findIndex((option) => resolveOptionLabel(option) === correctAnswer);
     if (answerIndex >= 0) return answerIndex;
   }
 
@@ -78,8 +90,9 @@ function mapExerciseToQuestion(exercise, localQuestion, index) {
     helperText: localQuestion?.helperText ?? "",
     promptAudioUrl: exercise?.promptAudioUrl ?? null,
     options: options.map((option, optionIndex) => ({
-      label: option?.text ?? "",
-      color: resolveOptionColor(option?.text, localQuestion, optionIndex),
+      id: option?.id ?? null,
+      label: resolveOptionLabel(option),
+      color: resolveOptionColor(option, localQuestion, optionIndex),
       audioUrl: option?.audioUrl ?? null,
     })),
     correctIndex,
@@ -107,6 +120,7 @@ function mapRemoteLesson(remoteLesson, localLesson) {
     introMessage: localLesson?.introMessage ?? DEFAULT_INTRO_MESSAGE,
     completionMessage: localLesson?.completionMessage ?? DEFAULT_COMPLETION_MESSAGE,
     locationId: remoteLesson?.locationId ?? localLesson?.locationId ?? "school",
+    mission: remoteLesson?.mission ?? localLesson?.mission ?? null,
     questions,
   };
 }

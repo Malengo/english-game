@@ -23,6 +23,9 @@ public class ExerciseOption {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String text;
 
+    @Column(length = 20)
+    private String color;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "audio_id")
     private AudioAsset audio;
@@ -59,6 +62,14 @@ public class ExerciseOption {
 
     public void setText(String text) {
         this.text = text;
+    }
+
+    public String getColor() {
+        return color;
+    }
+
+    public void setColor(String color) {
+        this.color = color;
     }
 
     public AudioAsset getAudio() {

@@ -1,4 +1,8 @@
-import { buildLessonMissionCollectibles, getLessonMissionByLessonId } from "../lessonMissionCatalog";
+import {
+  buildLessonMissionCatalog,
+  buildLessonMissionCollectibles,
+  getLessonMissionByLessonId,
+} from "../lessonMissionCatalog";
 import { schoolColorsLesson } from "../schoolColorsLesson";
 
 describe("lessonMissionCatalog", () => {
@@ -65,5 +69,43 @@ describe("lessonMissionCatalog", () => {
     expect(blockedRects.length).toBeGreaterThan(0);
     expect(collectibles.length).toBeGreaterThan(0);
     expect(collectibles.every((collectible) => collectible.x >= 150 || collectible.y >= 150)).toBe(true);
+  });
+
+  it("gera baloes FIND com as cores cadastradas nas opcoes da licao dinamica", () => {
+    const catalog = buildLessonMissionCatalog([
+      {
+        id: "dynamic-colors",
+        title: "Dynamic Colors",
+        mission: {
+          type: "FIND",
+          title: "Baloes",
+          description: "Encontre os baloes {color} no mapa.",
+        },
+        questions: [
+          {
+            options: [
+              { id: "opt-cyan", label: "Cyan", color: "#00BCD4" },
+              { id: "opt-lime", label: "Lime", color: "#CDDC39" },
+            ],
+          },
+        ],
+      },
+    ]);
+
+    const mission = catalog.find((entry) => entry.missionId === "dynamic-colors-find-opt-cyan");
+    const collectibles = buildLessonMissionCollectibles(mission, null, {
+      worldWidth: 800,
+      worldHeight: 600,
+      rng: () => 0,
+    });
+
+    expect(mission.spawnRules.colors).toEqual([
+      expect.objectContaining({ label: "Cyan", color: "#00BCD4" }),
+      expect.objectContaining({ label: "Lime", color: "#CDDC39" }),
+    ]);
+    expect(collectibles.filter((collectible) => collectible.colorLabel === "Cyan")).toEqual(
+      expect.arrayContaining([expect.objectContaining({ color: "#00BCD4", isTarget: true })])
+    );
+    expect(collectibles.some((collectible) => collectible.color === "#CDDC39")).toBe(true);
   });
 });

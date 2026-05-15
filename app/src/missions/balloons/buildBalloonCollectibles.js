@@ -1,5 +1,21 @@
 import { learnedColorOptions } from "./balloonMissionConfig";
 
+const DEFAULT_BALLOON_COLORS = ["#E53935", "#1E88E5", "#43A047", "#FBC02D", "#EC407A", "#8E24AA", "#FB8C00"];
+const LABEL_COLOR_MAP = {
+  red: "#E53935",
+  blue: "#1E88E5",
+  green: "#43A047",
+  yellow: "#FBC02D",
+  orange: "#FB8C00",
+  purple: "#8E24AA",
+  pink: "#EC407A",
+  brown: "#8D6E63",
+  black: "#212121",
+  white: "#FAFAFA",
+  gray: "#757575",
+  grey: "#757575",
+};
+
 function clampCount(value, min, max) {
   return Math.max(min, Math.min(value, max));
 }
@@ -48,14 +64,25 @@ function shuffle(items, rng) {
 }
 
 export function buildBalloonCollectibles(mission, options = {}) {
+
   const config = mission?.spawnRules ?? mission?.balloonMission;
   if (!config) return [];
 
   const rng = typeof options.rng === "function" ? options.rng : Math.random;
-  const colors = Array.isArray(config.colors) && config.colors.length > 0 ? config.colors : learnedColorOptions;
+  const rawColors = Array.isArray(config.colors) && config.colors.length > 0 ? config.colors : learnedColorOptions;
+  const colors = rawColors
+    .map((option, index) => normalizeColorOption(option, index))
+    .filter((option) => option.label);
+  if (!colors.length) return [];
+
   const targetColorLabel = mission?.target?.colorLabel ?? config.targetColorLabel ?? colors[0]?.label;
-  const targetColor = colors.find((color) => color.label === targetColorLabel) ?? colors[0];
-  const distractorColors = colors.filter((color) => color.label !== targetColor.label);
+  const normalizedTargetLabel = String(targetColorLabel ?? "").trim().toLowerCase();
+  const targetColor =
+    colors.find((color) => String(color.label ?? "").trim().toLowerCase() === normalizedTargetLabel) ?? colors[0];
+  const targetLabelNormalized = String(targetColor?.label ?? "").trim().toLowerCase();
+  const distractorColors = colors.filter(
+    (color) => String(color.label ?? "").trim().toLowerCase() !== targetLabelNormalized
+  );
   const minCount = Math.max(1, config.minCount ?? 6);
   const maxCount = Math.max(minCount, config.maxCount ?? minCount);
   const totalCount = randomIntInRange(minCount, maxCount, rng);
@@ -82,7 +109,9 @@ export function buildBalloonCollectibles(mission, options = {}) {
 
     return {
       colorOption,
-      isTarget: colorOption.label === targetColor.label,
+      isTarget:
+        String(colorOption.label ?? "").trim().toLowerCase() ===
+        String(targetColor.label ?? "").trim().toLowerCase(),
       index,
     };
   });
@@ -115,4 +144,17 @@ export function buildBalloonCollectibles(mission, options = {}) {
       order,
     };
   });
+}
+
+function normalizeColorOption(option, index) {
+  const rawLabel = String(option?.label ?? "").trim();
+  const normalizedLabel = rawLabel.toLowerCase();
+  const rawColor = typeof option?.color === "string" ? option.color.trim() : "";
+  const resolvedColor = rawColor || LABEL_COLOR_MAP[normalizedLabel] || DEFAULT_BALLOON_COLORS[index % DEFAULT_BALLOON_COLORS.length];
+
+  return {
+    ...option,
+    label: rawLabel,
+    color: resolvedColor,
+  };
 }

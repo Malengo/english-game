@@ -149,7 +149,7 @@
 
     .option-row {
       display: grid;
-      grid-template-columns: 80px minmax(0, 1fr) 112px;
+      grid-template-columns: 80px minmax(0, 1fr) 96px 112px;
       gap: 10px;
       align-items: end;
       border: 1px solid var(--line);
@@ -385,6 +385,9 @@
               <label>Alternativa A *
                 <input name="optionText" required placeholder="Red">
               </label>
+              <label>Cor
+                <input name="optionColor" type="color" value="#E53935">
+              </label>
               <label>Ordem
                 <input type="number" value="0" disabled>
               </label>
@@ -396,6 +399,9 @@
               </label>
               <label>Alternativa B *
                 <input name="optionText" required placeholder="Blue">
+              </label>
+              <label>Cor
+                <input name="optionColor" type="color" value="#1E88E5">
               </label>
               <label>Ordem
                 <input type="number" value="1" disabled>
@@ -409,6 +415,9 @@
               <label>Alternativa C
                 <input name="optionText" placeholder="Green">
               </label>
+              <label>Cor
+                <input name="optionColor" type="color" value="#43A047">
+              </label>
               <label>Ordem
                 <input type="number" value="2" disabled>
               </label>
@@ -420,6 +429,9 @@
               </label>
               <label>Alternativa D
                 <input name="optionText" placeholder="Yellow">
+              </label>
+              <label>Cor
+                <input name="optionColor" type="color" value="#FBC02D">
               </label>
               <label>Ordem
                 <input type="number" value="3" disabled>
@@ -666,9 +678,16 @@
     }
 
     const data = new FormData(exerciseForm);
-    const optionTexts = data.getAll('optionText')
-      .map((text) => String(text).trim())
-      .filter(Boolean);
+    const rawOptionTexts = data.getAll('optionText').map((text) => String(text).trim());
+    const optionColors = data.getAll('optionColor').map((color) => String(color).trim());
+    const optionEntries = rawOptionTexts
+      .map((text, rowIndex) => ({
+        text,
+        color: optionColors[rowIndex] || undefined,
+        rowIndex
+      }))
+      .filter((option) => option.text);
+    const optionTexts = optionEntries.map((option) => option.text);
     const correctIndex = Number(data.get('correctOption') || 0);
 
     if (optionTexts.length < 2) {
@@ -676,14 +695,17 @@
       return;
     }
 
-    if (correctIndex >= optionTexts.length) {
+    const correctOptionEntry = optionEntries.find((option) => option.rowIndex === correctIndex);
+
+    if (!correctOptionEntry) {
       setStatus('err', 'A alternativa correta marcada esta vazia.');
       return;
     }
 
-    const options = optionTexts.map((text, index) => ({
-      text,
-      correct: index === correctIndex,
+    const options = optionEntries.map((option, index) => ({
+      text: option.text,
+      color: option.color,
+      correct: option.rowIndex === correctIndex,
       orderIndex: index
     }));
 
@@ -691,7 +713,7 @@
       prompt: field(exerciseForm, 'prompt'),
       emoji: field(exerciseForm, 'emoji'),
       type: 'MULTIPLE_CHOICE',
-      correctAnswer: optionTexts[correctIndex],
+      correctAnswer: correctOptionEntry.text,
       orderIndex: state.lesson.exercises ? state.lesson.exercises.length : 0,
       options
     };

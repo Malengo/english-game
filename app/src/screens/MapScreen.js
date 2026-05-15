@@ -5,7 +5,12 @@ import {SafeAreaView} from 'react-native-safe-area-context/src';
 import { useFocusEffect } from "@react-navigation/native";
 import { locations } from "../data/locationConfig";
 import { npcConfigs } from "../data/npcConfig";
-import { lessonMissionCatalog, buildLessonMissionCollectibles, getLatestLessonMissionForLesson, getLessonMissionsByLessonId } from "../data/lessonMissionCatalog";
+import {
+    buildLessonMissionCatalog,
+    buildLessonMissionCollectibles,
+    getLatestLessonMissionForLesson,
+    getLessonMissionsByLessonId,
+} from "../data/lessonMissionCatalog";
 import { getNextPendingLessonForLocation } from "../data/lessonCatalog";
 import { useLessonCatalog } from "../hooks/useLessonCatalog";
 import Player from "../components/Player";
@@ -16,6 +21,7 @@ import Collectible from "../components/Collectible";
 import {
     loadProgress,
     markSchoolVisited,
+    markLocationCompleted,
     markLessonMissionCompleted,
     saveMissionCheckpoint,
     clearMissionCheckpoint,
@@ -323,7 +329,7 @@ function isMapLessonMission(mission) {
 
 export default function MapScreen({ navigation }) {
     // Ensure lesson catalog loads and updates trigger re-render.
-    useLessonCatalog();
+    const lessonCatalogSnapshot = useLessonCatalog();
     const { width: viewportWidth, height: viewportHeight } = useWindowDimensions();
     const [position, setPosition] = useState(INITIAL_POSITION);
     const [lastDirection, setLastDirection] = useState("down");
@@ -551,19 +557,27 @@ export default function MapScreen({ navigation }) {
         [completedLessonMissionIds, todayKey]
     );
 
+    const dynamicLessonMissionCatalog = useMemo(
+        () => buildLessonMissionCatalog(lessonCatalogSnapshot?.allLessons ?? []),
+        [lessonCatalogSnapshot?.version]
+    );
+
     const activeLessonMission = useMemo(
         () =>
             resolveActiveLessonMission({
                 lessonCompletions: todayLessonCompletions,
                 completedLessonMissionIds: todayCompletedLessonMissionIds,
-                lessonMissionCatalog,
+                lessonMissionCatalog: dynamicLessonMissionCatalog,
             }),
-        [todayLessonCompletions, todayCompletedLessonMissionIds]
+        [todayLessonCompletions, todayCompletedLessonMissionIds, dynamicLessonMissionCatalog]
     );
 
     const activeLessonMissionList = useMemo(
-        () => (activeLessonMission?.lessonId ? getLessonMissionsByLessonId(activeLessonMission.lessonId) : []),
-        [activeLessonMission]
+        () =>
+            activeLessonMission?.lessonId
+                ? getLessonMissionsByLessonId(activeLessonMission.lessonId, dynamicLessonMissionCatalog)
+                : [],
+        [activeLessonMission, dynamicLessonMissionCatalog]
     );
 
     const unlockedLessonMission = useMemo(() => {
@@ -605,8 +619,11 @@ export default function MapScreen({ navigation }) {
     );
 
     const latestCompletedLessonMission = useMemo(
-        () => (latestCompletedLesson ? getLatestLessonMissionForLesson(latestCompletedLesson.lessonId) ?? null : null),
-        [latestCompletedLesson]
+        () =>
+            latestCompletedLesson
+                ? getLatestLessonMissionForLesson(latestCompletedLesson.lessonId, dynamicLessonMissionCatalog) ?? null
+                : null,
+        [latestCompletedLesson, dynamicLessonMissionCatalog]
     );
 
     const hasFinishedLatestLessonMission = useMemo(
@@ -665,6 +682,12 @@ export default function MapScreen({ navigation }) {
 
             try {
                 await markLessonMissionCompleted(mission.missionId);
+                if (latestCompletedLesson?.locationId) {
+                    await markLocationCompleted(latestCompletedLesson.locationId);
+                    setCompletedLocationIds((prev) =>
+                        Array.from(new Set([...prev, latestCompletedLesson.locationId]))
+                    );
+                }
                 setCompletedLessonMissionIds((prev) =>
                     Array.from(new Set([...prev, buildDailyLessonMissionCompletionId(mission.missionId)]))
                 );
@@ -684,7 +707,7 @@ export default function MapScreen({ navigation }) {
                 missionCompletionLockRef.current = false;
             }
         },
-        [showPlayerDialog]
+        [latestCompletedLesson, showPlayerDialog]
     );
 
     // Loop unico de movimento para evitar recriar intervalos a cada frame do joystick

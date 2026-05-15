@@ -71,6 +71,7 @@ public class ExerciseService {
             ExerciseOption option = new ExerciseOption();
             option.setExercise(exercise);
             option.setText(optionRequest.text());
+            option.setColor(optionRequest.color());
             option.setCorrect(optionRequest.correct());
             option.setOrderIndex(optionRequest.orderIndex());
             exercise.getOptions().add(option);
