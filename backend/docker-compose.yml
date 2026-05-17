@@ -10,6 +10,44 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U english_game"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: english-game-backend
+    ports:
+      - "8082:8082"
+    environment:
+      - DATABASE_URL=jdbc:postgresql://postgres:5432/english_game
+      - DATABASE_USERNAME=english_game
+      - DATABASE_PASSWORD=english_game
+      - SERVER_PORT=8082
+      - R2_ENDPOINT=${R2_ENDPOINT}
+      - R2_ACCESS_KEY_ID=${R2_ACCESS_KEY_ID}
+      - R2_SECRET_ACCESS_KEY=${R2_SECRET_ACCESS_KEY}
+      - R2_BUCKET=${R2_BUCKET}
+      - R2_PUBLIC_BASE_URL=${R2_PUBLIC_BASE_URL}
+      - TTS_PYTHON_COMMAND=python3
+      - TTS_SCRIPT_PATH=scripts/generate_audio.py
+      - TTS_TEMP_DIR=/tmp/english-game-audios
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - /tmp/english-game-audios:/tmp/english-game-audios
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8082/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
 volumes:
   postgres_data:

@@ -357,6 +357,44 @@ app:
     script-path: ${TTS_SCRIPT_PATH:scripts/generate_audio.py}
 ```
 
+## Variaveis de Ambiente e Arquivos .env
+
+### Setup Inicial
+
+1. **Crie o arquivo `.env`** na raiz do projeto backend:
+   ```bash
+   cp .env.example .env
+   ```
+
+2. **Previsão**: O arquivo `.env` deve NUNCA ser commitado (já está em `.gitignore`).
+
+3. **Compartilhamento**: Use o arquivo `.env.example` para documentar quais variáveis são necessárias.
+
+### ⚠️ IMPORTANTE: Manter `.env.example` Sincronizado
+
+**Toda vez que você adicionar, remover ou modificar uma variável de ambiente no `.env`, TAMBÉM ATUALIZE o arquivo `.env.example`.**
+
+#### Exemplo:
+Se você precisa adicionar uma nova variável:
+
+1. Adicione em `.env`:
+   ```env
+   NOVA_FEATURE_API_KEY=seu-valor-secreto-aqui
+   ```
+
+2. Adicione em `.env.example` (SEM o valor secreto):
+   ```env
+   NOVA_FEATURE_API_KEY=
+   ```
+
+3. Atualize a documentação em `SPRINGBOOT_GUIDE.md` se necessário.
+
+### Arquivos Relacionados
+
+- **`.env`**: Arquivo LOCAL com valores reais (NUNCA commitar)
+- **`.env.example`**: Arquivo de REFERÊNCIA sem valores secretos (SEMPRE commitar)
+- **`.gitignore`**: Já contém `.env` para evitar uploads acidentais
+
 ## Seguranca
 
 Para o primeiro MVP:
@@ -372,6 +410,13 @@ Papeis:
 
 - `ADMIN`: cria, edita, publica e remove licoes.
 - `PLAYER`: futuramente pode salvar progresso no backend.
+
+### Proteção de Variáveis Sensíveis
+
+- **Nunca versione `.env`**: Está em `.gitignore` para sua segurança.
+- **Use `.env.example`**: Compartilhe com o time como referência.
+- **Em produção**: Configure variáveis via plataforma (Docker, AWS, Heroku, etc.).
+- **Em CI/CD**: Use secrets gerenciados, nunca `.env`.
 
 ## DTO de Resposta para o App
 
