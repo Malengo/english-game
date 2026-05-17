@@ -10,7 +10,7 @@ export default function HouseMissionScreen({ navigation, route }) {
       route={route}
       locationId={LOCATION_ID}
       screenName="HouseMission"
-      screenIcon="ðŸ "
+      screenIcon={"\uD83C\uDFE0"}
       defaultBackgroundColor="#FFF3E0"
       defaultBorderColor="#FFB300"
       defaultWelcome="Bem-vindo a Casa!"
@@ -18,4 +18,3 @@ export default function HouseMissionScreen({ navigation, route }) {
     />
   );
 }
-

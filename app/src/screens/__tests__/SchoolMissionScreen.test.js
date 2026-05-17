@@ -31,6 +31,14 @@ describe("SchoolMissionScreen", () => {
     return { ...utils, navigation };
   }
 
+  function advanceTeachingSteps(queryByLabelText) {
+    let continueButton = queryByLabelText("Continuar licao");
+    while (continueButton) {
+      fireEvent.press(continueButton);
+      continueButton = queryByLabelText("Continuar licao");
+    }
+  }
+
   it("mostra o tutorial de cores quando autoStart for true", () => {
     const { getByText } = renderScreen({ autoStart: true });
 
@@ -56,8 +64,9 @@ describe("SchoolMissionScreen", () => {
   });
 
   it("avanca por todas as perguntas e vai para a proxima licao da escola", async () => {
-    const { getByLabelText, getByText, navigation } = renderScreen({ autoStart: true });
+    const { getByLabelText, getByText, queryByLabelText, navigation } = renderScreen({ autoStart: true });
 
+    advanceTeachingSteps(queryByLabelText);
     fireEvent.press(getByLabelText("Resposta Red"));
     fireEvent.press(getByText("Proxima pergunta"));
 
@@ -93,4 +102,3 @@ describe("SchoolMissionScreen", () => {
     expect(navigation.goBack).toHaveBeenCalledTimes(1);
   });
 });
-

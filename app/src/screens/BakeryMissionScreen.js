@@ -10,7 +10,7 @@ export default function BakeryMissionScreen({ navigation, route }) {
       route={route}
       locationId={LOCATION_ID}
       screenName="BakeryMission"
-      screenIcon="ðŸ¥"
+      screenIcon={"\uD83E\uDD50"}
       defaultBackgroundColor="#FFF8E1"
       defaultBorderColor="#FFB300"
       defaultWelcome="Bem-vindo a Padaria!"
@@ -18,4 +18,3 @@ export default function BakeryMissionScreen({ navigation, route }) {
     />
   );
 }
-

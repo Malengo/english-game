@@ -11,7 +11,7 @@ export default function SchoolMissionScreen({ navigation, route }) {
       route={route}
       locationId={LOCATION_ID}
       screenName="SchoolMission"
-      screenIcon="ðŸŽ¨"
+      screenIcon={"\uD83C\uDFA8"}
       defaultBackgroundColor="#FFF8E1"
       defaultBorderColor="#FFB300"
       defaultWelcome="Bem-vindo a Escola!"
@@ -20,4 +20,3 @@ export default function SchoolMissionScreen({ navigation, route }) {
     />
   );
 }
-
