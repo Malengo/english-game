@@ -34,6 +34,6 @@ RUN mkdir -p /tmp/english-game-audios
 EXPOSE 8082
 
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-    CMD-SHELL curl -f "http://localhost:${SERVER_PORT:-${PORT:-8082}}/actuator/health" || exit 1
+    CMD sh -c 'curl -f "http://localhost:${SERVER_PORT:-${PORT:-8082}}/actuator/health" || exit 1'
 
 ENTRYPOINT ["java", "-jar", "app.jar"]
