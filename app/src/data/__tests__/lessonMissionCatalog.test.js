@@ -108,4 +108,57 @@ describe("lessonMissionCatalog", () => {
     );
     expect(collectibles.some((collectible) => collectible.color === "#CDDC39")).toBe(true);
   });
+
+  it("gera uma missao FIND de emoji usando o emoji da pergunta", () => {
+    const catalog = buildLessonMissionCatalog([
+      {
+        id: "fruit-emoji",
+        title: "Fruit Emoji",
+        mission: {
+          type: "FIND",
+          title: "Fruta",
+          description: "Encontre {emoji} no mapa.",
+          targetSource: "QUESTION_EMOJI",
+          collectibleType: "emoji",
+        },
+        questions: [
+          {
+            id: "apple-question",
+            emoji: "🍎",
+            prompt: "What fruit is this?",
+            correctIndex: 0,
+            options: [
+              { id: "apple", label: "Apple", color: "#E53935" },
+              { id: "banana", label: "Banana", color: "#FBC02D" },
+            ],
+          },
+        ],
+      },
+    ]);
+
+    const mission = catalog.find((entry) => entry.missionId === "fruit-emoji-find-apple-question");
+    const collectibles = buildLessonMissionCollectibles(mission, null, {
+      worldWidth: 800,
+      worldHeight: 600,
+      rng: () => 0,
+    });
+
+    expect(mission).toEqual(
+      expect.objectContaining({
+        type: "collectibles",
+        target: expect.objectContaining({ emoji: "🍎", label: "Apple" }),
+      })
+    );
+    expect(collectibles).toHaveLength(mission.spawnRules.minCount);
+    expect(collectibles).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          type: "emoji",
+          emoji: "🍎",
+          label: "Apple",
+          isTarget: true,
+        }),
+      ])
+    );
+  });
 });

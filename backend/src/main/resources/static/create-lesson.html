@@ -4,6 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Multiple choice lesson - English Game</title>
+  <script type="module" src="https://cdn.jsdelivr.net/npm/emoji-picker-element@^1/index.js"></script>
   <style>
     :root {
       --bg: #f5f7fb;
@@ -240,26 +241,14 @@
       gap: 8px;
     }
 
-    .emoji-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
-      gap: 8px;
-    }
-
-    .emoji-button {
-      width: 40px;
-      height: 40px;
-      border-radius: 10px;
+    emoji-picker {
+      width: 100%;
+      height: 320px;
       border: 1px solid var(--line);
-      background: #f8fafc;
-      font-size: 20px;
-      cursor: pointer;
-    }
-
-    .emoji-button.selected {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 2px rgba(8, 127, 91, 0.18);
-      background: #eef6f2;
+      border-radius: 8px;
+      --border-radius: 8px;
+      --emoji-size: 1.45rem;
+      --num-columns: 9;
     }
 
     @media (max-width: 900px) {
@@ -327,6 +316,21 @@
               </label>
             </div>
 
+            <div class="row">
+              <label>Coletavel
+                <select name="missionCollectibleType" id="missionCollectibleType" disabled>
+                  <option value="balloon">Baloes coloridos</option>
+                  <option value="emoji">Emoji da pergunta</option>
+                </select>
+              </label>
+              <label>Origem do alvo
+                <select name="missionTargetSource" id="missionTargetSource" disabled>
+                  <option value="LESSON_OPTIONS">Alternativas da licao</option>
+                  <option value="QUESTION_EMOJI">Emoji da pergunta</option>
+                </select>
+              </label>
+            </div>
+
             <label>Titulo da missao
               <input name="missionTitle" id="missionTitle" maxlength="160" placeholder="Find the objects" disabled>
             </label>
@@ -345,7 +349,63 @@
 
       <section class="section">
         <div class="step-title">
-          <h2>2. Pergunta e audios</h2>
+          <h2>2. Ensinamento e audio</h2>
+          <span class="badge">ITEM</span>
+        </div>
+        <p class="muted">Adicione palavras, frases ou falas em ingles antes das perguntas. O app mostra estes itens como steps de ensinamento.</p>
+
+        <form id="lessonItemForm">
+          <div class="row">
+            <label>Tipo
+              <select name="type">
+                <option value="VOCABULARY">VOCABULARY</option>
+                <option value="PHRASE">PHRASE</option>
+                <option value="DIALOG">DIALOG</option>
+              </select>
+            </label>
+            <label>Ordem
+              <input name="orderIndex" type="number" min="0" value="0">
+            </label>
+          </div>
+
+          <label>Texto em ingles *
+            <textarea name="text" required placeholder="Red"></textarea>
+          </label>
+
+          <label>Traducao ou explicacao
+            <textarea name="translation" placeholder="Vermelho"></textarea>
+          </label>
+
+          <div class="row">
+            <label>Voz
+              <select name="voice">
+                <option value="en-US-JennyNeural">en-US-JennyNeural</option>
+                <option value="en-US-GuyNeural">en-US-GuyNeural</option>
+                <option value="en-GB-SoniaNeural">en-GB-SoniaNeural</option>
+                <option value="en-GB-RyanNeural">en-GB-RyanNeural</option>
+              </select>
+            </label>
+            <label>Idioma
+              <input name="language" value="en-US">
+            </label>
+          </div>
+
+          <label>
+            <span>
+              <input type="checkbox" name="generateAudio" checked>
+              Gerar audio deste ensinamento ao salvar
+            </span>
+          </label>
+
+          <div class="actions">
+            <button type="submit" id="saveLessonItemButton" disabled>Salvar ensinamento</button>
+          </div>
+        </form>
+      </section>
+
+      <section class="section">
+        <div class="step-title">
+          <h2>3. Pergunta e audios</h2>
           <span class="badge">MULTIPLE_CHOICE</span>
         </div>
         <p class="muted">Preencha a pergunta e as alternativas. Ao salvar, o backend cria o exercicio e gera o audio da pergunta e das alternativas.</p>
@@ -353,10 +413,10 @@
         <form id="exerciseForm">
           <div class="emoji-picker">
             <label>Emoji da pergunta
-              <input name="emoji" id="emojiInput" readonly placeholder="Selecione um emoji">
+              <input name="emoji" id="emojiInput" maxlength="12" placeholder="Selecione ou cole um emoji">
             </label>
-            <div id="emojiGrid" class="emoji-grid"></div>
-            <span id="emojiHint" class="muted">Carregando emojis...</span>
+            <emoji-picker id="emojiPicker"></emoji-picker>
+            <span class="muted">Selecione no painel ou cole outro emoji diretamente no campo.</span>
           </div>
 
           <label>Pergunta *
@@ -468,27 +528,31 @@
 <script>
   const state = {
     lesson: null,
+    currentItem: null,
     currentExercise: null
   };
 
   const lessonForm = document.getElementById('lessonForm');
+  const lessonItemForm = document.getElementById('lessonItemForm');
   const exerciseForm = document.getElementById('exerciseForm');
   const lessonState = document.getElementById('lessonState');
+  const saveLessonItemButton = document.getElementById('saveLessonItemButton');
   const saveExerciseButton = document.getElementById('saveExerciseButton');
   const publishButton = document.getElementById('publishButton');
   const newLessonButton = document.getElementById('newLessonButton');
   const statusEl = document.getElementById('status');
   const jsonPreview = document.getElementById('jsonPreview');
   const audioPreview = document.getElementById('audioPreview');
-  const emojiGrid = document.getElementById('emojiGrid');
   const emojiInput = document.getElementById('emojiInput');
-  const emojiHint = document.getElementById('emojiHint');
+  const emojiPicker = document.getElementById('emojiPicker');
   const hasMissionInput = document.getElementById('hasMission');
   const missionPanel = document.getElementById('missionPanel');
   const missionTypeInput = document.getElementById('missionType');
   const missionTitleInput = document.getElementById('missionTitle');
   const missionDescriptionInput = document.getElementById('missionDescription');
   const missionNpcIdInput = document.getElementById('missionNpcId');
+  const missionCollectibleTypeInput = document.getElementById('missionCollectibleType');
+  const missionTargetSourceInput = document.getElementById('missionTargetSource');
   const missionPreview = document.getElementById('missionPreview');
 
   function field(form, name) {
@@ -533,6 +597,7 @@
 
   function updateControls() {
     const hasLesson = Boolean(state.lesson);
+    saveLessonItemButton.disabled = !hasLesson;
     saveExerciseButton.disabled = !hasLesson;
     publishButton.disabled = !hasLesson || state.lesson.status === 'PUBLISHED';
     lessonState.textContent = hasLesson ? `${state.lesson.title} (${state.lesson.status})` : 'Pendente';
@@ -553,6 +618,8 @@
     missionPreview.innerHTML = `
       <strong>Missao vinculada</strong>
       <div class="muted">Tipo: ${escapeHtml(mission.type)}</div>
+      <div class="muted">Coletavel: ${escapeHtml(mission.collectibleType || 'balloon')}</div>
+      <div class="muted">Origem: ${escapeHtml(mission.targetSource || 'LESSON_OPTIONS')}</div>
       <div class="muted">Titulo: ${escapeHtml(mission.title)}</div>
       ${mission.description ? `<div class="muted">Descricao: ${escapeHtml(mission.description)}</div>` : ''}
       <div class="muted">NPC: ${escapeHtml(mission.npcId)}</div>
@@ -565,11 +632,15 @@
     missionTitleInput.disabled = !enabled;
     missionDescriptionInput.disabled = !enabled;
     missionNpcIdInput.disabled = !enabled;
+    missionCollectibleTypeInput.disabled = !enabled;
+    missionTargetSourceInput.disabled = !enabled;
     missionTypeInput.required = enabled;
     missionTitleInput.required = enabled;
     missionNpcIdInput.required = enabled;
     if (!enabled) {
       missionTypeInput.value = 'FIND';
+      missionCollectibleTypeInput.value = 'balloon';
+      missionTargetSourceInput.value = 'LESSON_OPTIONS';
       missionTitleInput.value = '';
       missionDescriptionInput.value = '';
       missionNpcIdInput.value = '';
@@ -578,24 +649,34 @@
 
   function renderAudioPreview() {
     audioPreview.innerHTML = '';
-    if (!state.currentExercise) {
+    if (!state.currentItem && !state.currentExercise) {
       return;
     }
 
     const entries = [];
-    entries.push({
-      label: 'Pergunta',
-      text: state.currentExercise.prompt,
-      url: state.currentExercise.promptAudioUrl
-    });
-
-    (state.currentExercise.options || []).forEach((option, index) => {
+    if (state.currentItem) {
       entries.push({
-        label: `Alternativa ${String.fromCharCode(65 + index)}${option.correct ? ' correta' : ''}`,
-        text: option.text,
-        url: option.audioUrl
+        label: `Ensinamento ${state.currentItem.type}`,
+        text: state.currentItem.text,
+        url: state.currentItem.audioUrl
       });
-    });
+    }
+
+    if (state.currentExercise) {
+      entries.push({
+        label: 'Pergunta',
+        text: state.currentExercise.prompt,
+        url: state.currentExercise.promptAudioUrl
+      });
+
+      (state.currentExercise.options || []).forEach((option, index) => {
+        entries.push({
+          label: `Alternativa ${String.fromCharCode(65 + index)}${option.correct ? ' correta' : ''}`,
+          text: option.text,
+          url: option.audioUrl
+        });
+      });
+    }
 
     entries.forEach((entry) => {
       const card = document.createElement('div');
@@ -623,6 +704,9 @@
       return;
     }
     state.lesson = await api(`/api/lessons/${state.lesson.id}`);
+    state.currentItem = state.lesson.items && state.lesson.items.length
+      ? state.lesson.items[state.lesson.items.length - 1]
+      : null;
     state.currentExercise = state.lesson.exercises && state.lesson.exercises.length
       ? state.lesson.exercises[state.lesson.exercises.length - 1]
       : null;
@@ -648,7 +732,9 @@
         type: field(lessonForm, 'missionType'),
         title: field(lessonForm, 'missionTitle'),
         description: field(lessonForm, 'missionDescription'),
-        npcId: field(lessonForm, 'missionNpcId')
+        npcId: field(lessonForm, 'missionNpcId'),
+        collectibleType: field(lessonForm, 'missionCollectibleType'),
+        targetSource: field(lessonForm, 'missionTargetSource')
       }) : undefined
     });
 
@@ -658,15 +744,76 @@
         method: 'POST',
         body: JSON.stringify(payload)
       });
+      state.currentItem = null;
       state.currentExercise = null;
       lessonForm.reset();
       lessonForm.elements.stageRequired.value = '1';
+      lessonItemForm.elements.orderIndex.value = '0';
+      lessonItemForm.elements.voice.value = 'en-US-JennyNeural';
+      lessonItemForm.elements.language.value = 'en-US';
+      lessonItemForm.elements.generateAudio.checked = true;
       hasMissionInput.checked = false;
       toggleMissionFields(false);
       setStatus('ok', `Licao criada. ID: ${state.lesson.id}`);
       updateControls();
     } catch (error) {
       setStatus('err', `Erro ao criar licao: ${error.message}`);
+    }
+  });
+
+  lessonItemForm.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    if (!state.lesson) {
+      setStatus('err', 'Crie a licao antes de salvar o ensinamento.');
+      return;
+    }
+
+    const data = new FormData(lessonItemForm);
+    const payload = {
+      type: field(lessonItemForm, 'type'),
+      text: field(lessonItemForm, 'text'),
+      translation: field(lessonItemForm, 'translation'),
+      orderIndex: field(lessonItemForm, 'orderIndex')
+        ? Number(field(lessonItemForm, 'orderIndex'))
+        : (state.lesson.items ? state.lesson.items.length : 0)
+    };
+
+    try {
+      setBusy(saveLessonItemButton, true, 'Salvar ensinamento');
+      setStatus(null, 'Criando ensinamento...');
+      const item = await api(`/api/lessons/${state.lesson.id}/items`, {
+        method: 'POST',
+        body: JSON.stringify(payload)
+      });
+      state.currentItem = item;
+      state.currentExercise = null;
+
+      if (data.get('generateAudio')) {
+        const audioConfig = {
+          voice: field(lessonItemForm, 'voice'),
+          language: field(lessonItemForm, 'language')
+        };
+
+        setStatus(null, `Gerando audio do ensinamento: ${item.text}`);
+        const itemAudio = await api(`/api/lessons/${state.lesson.id}/items/${item.id}/generate-audio`, {
+          method: 'POST',
+          body: JSON.stringify(audioConfig)
+        });
+        assertGenerated(itemAudio, `Ensinamento ${item.text}`);
+      }
+
+      await refreshLesson();
+      lessonItemForm.reset();
+      lessonItemForm.elements.orderIndex.value = state.lesson.items ? String(state.lesson.items.length) : '0';
+      lessonItemForm.elements.voice.value = 'en-US-JennyNeural';
+      lessonItemForm.elements.language.value = 'en-US';
+      lessonItemForm.elements.generateAudio.checked = true;
+      setStatus('ok', 'Ensinamento salvo. Confira o player de audio no preview.');
+    } catch (error) {
+      setStatus('err', `Erro no fluxo do ensinamento: ${error.message}`);
+      await refreshLesson().catch(() => undefined);
+    } finally {
+      setBusy(saveLessonItemButton, false, 'Salvar ensinamento');
     }
   });
 
@@ -725,6 +872,7 @@
         method: 'POST',
         body: JSON.stringify(payload)
       });
+      state.currentItem = null;
       state.currentExercise = exercise;
 
       if (data.get('generateAudio')) {
@@ -752,7 +900,6 @@
 
       await refreshLesson();
       exerciseForm.reset();
-      emojiGrid.querySelectorAll('.emoji-button').forEach((el) => el.classList.remove('selected'));
       emojiInput.value = '';
       exerciseForm.elements.voice.value = 'en-US-JennyNeural';
       exerciseForm.elements.language.value = 'en-US';
@@ -787,58 +934,53 @@
 
   newLessonButton.addEventListener('click', () => {
     state.lesson = null;
+    state.currentItem = null;
     state.currentExercise = null;
     lessonForm.reset();
+    lessonItemForm.reset();
     exerciseForm.reset();
     lessonForm.elements.stageRequired.value = '1';
     hasMissionInput.checked = false;
     toggleMissionFields(false);
+    lessonItemForm.elements.orderIndex.value = '0';
+    lessonItemForm.elements.voice.value = 'en-US-JennyNeural';
+    lessonItemForm.elements.language.value = 'en-US';
+    lessonItemForm.elements.generateAudio.checked = true;
     exerciseForm.elements.voice.value = 'en-US-JennyNeural';
     exerciseForm.elements.language.value = 'en-US';
     exerciseForm.elements.generateAudio.checked = true;
     exerciseForm.elements.correctOption[0].checked = true;
-    emojiGrid.querySelectorAll('.emoji-button').forEach((el) => el.classList.remove('selected'));
     emojiInput.value = '';
     setStatus(null, 'Crie uma licao para liberar o cadastro da pergunta.');
     updateControls();
   });
 
-  function renderEmojiPicker(emojis) {
-    emojiGrid.innerHTML = '';
-    if (!Array.isArray(emojis) || emojis.length === 0) {
-      emojiHint.textContent = 'Nenhum emoji disponivel.';
-      return;
-    }
-
-    emojiHint.textContent = 'Selecione um emoji para a pergunta.';
-
-    emojis.forEach((emoji) => {
-      const button = document.createElement('button');
-      button.type = 'button';
-      button.className = 'emoji-button';
-      button.textContent = emoji;
-      button.addEventListener('click', () => {
-        emojiInput.value = emoji;
-        emojiGrid.querySelectorAll('.emoji-button').forEach((el) => el.classList.remove('selected'));
-        button.classList.add('selected');
-      });
-      emojiGrid.appendChild(button);
-    });
-  }
-
-  async function loadEmojis() {
-    try {
-      const emojis = await api('/api/emojis');
-      renderEmojiPicker(emojis);
-    } catch (error) {
-      emojiHint.textContent = 'Falha ao carregar emojis.';
-    }
-  }
-
-  loadEmojis();
+  emojiPicker.addEventListener('emoji-click', (event) => {
+    emojiInput.value = event.detail.unicode;
+  });
   toggleMissionFields(false);
   hasMissionInput.addEventListener('change', (event) => {
     toggleMissionFields(event.target.checked);
+  });
+  missionCollectibleTypeInput.addEventListener('change', (event) => {
+    if (event.target.value === 'emoji') {
+      missionTargetSourceInput.value = 'QUESTION_EMOJI';
+      if (!missionDescriptionInput.value.trim()) {
+        missionDescriptionInput.value = 'Encontre {emoji} no mapa.';
+      }
+      if (!missionTitleInput.value.trim()) {
+        missionTitleInput.value = 'Encontre o emoji';
+      }
+      return;
+    }
+
+    missionTargetSourceInput.value = 'LESSON_OPTIONS';
+    if (!missionDescriptionInput.value.trim() || missionDescriptionInput.value === 'Encontre {emoji} no mapa.') {
+      missionDescriptionInput.value = 'Encontre os baloes {color} no mapa.';
+    }
+    if (!missionTitleInput.value.trim() || missionTitleInput.value === 'Encontre o emoji') {
+      missionTitleInput.value = 'Baloes';
+    }
   });
   setStatus(null, 'Crie uma licao para liberar o cadastro da pergunta.');
   updateControls();

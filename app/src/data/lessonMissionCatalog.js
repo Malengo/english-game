@@ -6,6 +6,15 @@ import { schoolColorsBalloonMission, schoolColorsBlueBalloonMission } from "../m
 import { buildBalloonCollectibles } from "../missions/balloons/buildBalloonCollectibles";
 
 const DEFAULT_OPTION_COLORS = ["#E53935", "#1E88E5", "#43A047", "#FBC02D", "#EC407A", "#8E24AA", "#FB8C00"];
+const DEFAULT_FIND_COLLECTIBLE_TYPE = "balloon";
+const DEFAULT_FIND_TARGET_SOURCE = "LESSON_OPTIONS";
+
+function normalizeConfigValue(value) {
+  return String(value ?? "")
+    .trim()
+    .replace(/-/g, "_")
+    .toUpperCase();
+}
 
 function slugify(value) {
   return String(value ?? "")
@@ -58,7 +67,39 @@ function collectLessonOptions(lesson) {
   return Array.from(unique.values());
 }
 
-function buildFindMissionsForLesson(lesson) {
+function collectQuestionEmojiTargets(lesson) {
+  const unique = new Map();
+  const questions = Array.isArray(lesson?.questions) ? lesson.questions : [];
+
+  questions.forEach((question, index) => {
+    const emoji = String(question?.emoji ?? "").trim();
+    if (!emoji) return;
+
+    const correctIndex = Number.isInteger(question?.correctIndex) ? question.correctIndex : 0;
+    const correctOption = question?.options?.[correctIndex];
+    const label = String(correctOption?.label ?? correctOption?.text ?? question?.prompt ?? emoji).trim();
+    const key = `${emoji}-${label.toLowerCase()}`;
+
+    if (!unique.has(key)) {
+      unique.set(key, {
+        id: question?.id ?? `question-${index + 1}`,
+        emoji,
+        label: label || emoji,
+      });
+    }
+  });
+
+  return Array.from(unique.values());
+}
+
+function replaceFindPromptTokens(template, target) {
+  return String(template)
+    .replaceAll("{color}", target.label)
+    .replaceAll("{target}", target.label)
+    .replaceAll("{emoji}", target.emoji ?? target.label);
+}
+
+function buildBalloonFindMissionsForLesson(lesson) {
   if (!lesson?.id || !lesson?.mission || String(lesson.mission.type).toUpperCase() !== "FIND") return [];
 
   const baseTitle = lesson.mission.title ?? "Baloes";
@@ -76,7 +117,7 @@ function buildFindMissionsForLesson(lesson) {
     const missionKey = slugify(colorOption.id ?? colorOption.label) || `option-${index + 1}`;
     const missionId = `${lesson.id}-find-${missionKey}`;
     const prompt = basePrompt.includes("{color}")
-      ? basePrompt.replace("{color}", colorOption.label)
+      ? replaceFindPromptTokens(basePrompt, colorOption)
       : `Encontre os baloes ${colorOption.label} no mapa.`;
 
     return normalizeMission({
@@ -115,6 +156,68 @@ function buildFindMissionsForLesson(lesson) {
       },
     });
   });
+}
+
+function buildEmojiFindMissionsForLesson(lesson) {
+  if (!lesson?.id || !lesson?.mission || String(lesson.mission.type).toUpperCase() !== "FIND") return [];
+
+  const baseTitle = lesson.mission.title ?? "Emoji";
+  const basePrompt = lesson.mission.description ?? "Encontre {emoji} no mapa.";
+  const targets = collectQuestionEmojiTargets(lesson);
+  if (!targets.length) return [];
+
+  return targets.map((target, index) => {
+    const missionKey = slugify(target.id ?? target.label) || `emoji-${index + 1}`;
+    const missionId = `${lesson.id}-find-${missionKey}`;
+    const prompt = replaceFindPromptTokens(basePrompt, target);
+
+    return normalizeMission({
+      id: missionId,
+      missionId,
+      type: "collectibles",
+      lessonId: lesson.id,
+      lessonLabel: lesson.title ?? lesson.id,
+      title: `${baseTitle} ${target.emoji}`,
+      prompt,
+      order: index + 1,
+      target: {
+        emoji: target.emoji,
+        label: target.label,
+      },
+      spawnRules: {
+        collectibleType: "emoji",
+        minCount: 8,
+        maxCount: 12,
+        size: 44,
+        mapPadding: 96,
+        emoji: target.emoji,
+        label: target.label,
+      },
+      completionRules: {
+        type: "collect-targets",
+        requireAllTargets: true,
+      },
+      feedbackRules: {
+        hudLabel: `${target.emoji} ${target.label}`,
+        guideMessage: prompt,
+        completionMessage: `Muito bem! Voce encontrou todos os ${target.label}.`,
+      },
+      reward: {
+        text: target.label,
+      },
+    });
+  });
+}
+
+function buildFindMissionsForLesson(lesson) {
+  const collectibleType = normalizeConfigValue(lesson?.mission?.collectibleType) || DEFAULT_FIND_COLLECTIBLE_TYPE.toUpperCase();
+  const targetSource = normalizeConfigValue(lesson?.mission?.targetSource) || DEFAULT_FIND_TARGET_SOURCE;
+
+  if (collectibleType === "EMOJI" || targetSource === "QUESTION_EMOJI") {
+    return buildEmojiFindMissionsForLesson(lesson);
+  }
+
+  return buildBalloonFindMissionsForLesson(lesson);
 }
 
 function normalizeMission(mission) {
@@ -235,6 +338,10 @@ export function buildLessonMissionCollectibles(mission, anchorPosition, options 
     return buildBalloonCollectibles(mission, options);
   }
 
+  if (mission.type === "collectibles" && mission.spawnRules?.collectibleType === "emoji") {
+    return buildEmojiCollectibles(mission, options);
+  }
+
   const origin = {
     x: Number.isFinite(anchorPosition?.x) ? anchorPosition.x : 0,
     y: Number.isFinite(anchorPosition?.y) ? anchorPosition.y : 0,
@@ -253,6 +360,77 @@ export function buildLessonMissionCollectibles(mission, anchorPosition, options 
     isTarget: collectible.isTarget ?? true,
     order: index,
   }));
+}
+
+function randomIntInRange(min, max, rng) {
+  return Math.floor(rng() * (max - min + 1)) + min;
+}
+
+function randomPoint({ width, height, itemSize, padding, rng }) {
+  const maxX = Math.max(padding, width - padding - itemSize);
+  const maxY = Math.max(padding, height - padding - itemSize);
+
+  return {
+    x: padding + rng() * Math.max(0, maxX - padding),
+    y: padding + rng() * Math.max(0, maxY - padding),
+  };
+}
+
+function findOpenPoint({ width, height, itemSize, padding, rng, isAreaBlocked, maxAttempts }) {
+  let fallbackPoint = null;
+
+  for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
+    const point = randomPoint({ width, height, itemSize, padding, rng });
+    fallbackPoint = point;
+    const rect = { x: point.x, y: point.y, width: itemSize, height: itemSize };
+
+    if (typeof isAreaBlocked !== "function" || !isAreaBlocked(rect)) {
+      return point;
+    }
+  }
+
+  return typeof isAreaBlocked === "function" ? null : fallbackPoint;
+}
+
+function buildEmojiCollectibles(mission, options = {}) {
+  const config = mission.spawnRules ?? {};
+  const rng = typeof options.rng === "function" ? options.rng : Math.random;
+  const minCount = Math.max(1, config.minCount ?? 6);
+  const maxCount = Math.max(minCount, config.maxCount ?? minCount);
+  const totalCount = randomIntInRange(minCount, maxCount, rng);
+  const size = config.size ?? 44;
+  const padding = config.mapPadding ?? 80;
+  const worldWidth = options.worldWidth ?? 1200;
+  const worldHeight = options.worldHeight ?? 900;
+  const maxPlacementAttempts = options.maxPlacementAttempts ?? 80;
+
+  return Array.from({ length: totalCount }, (_, order) => {
+    const point = findOpenPoint({
+      width: worldWidth,
+      height: worldHeight,
+      itemSize: size,
+      padding,
+      rng,
+      isAreaBlocked: options.isAreaBlocked,
+      maxAttempts: maxPlacementAttempts,
+    });
+
+    if (!point) return null;
+
+    return {
+      id: `${mission.missionId}-emoji-${order}`,
+      type: "emoji",
+      label: config.label ?? mission.target?.label ?? "Emoji",
+      emoji: config.emoji ?? mission.target?.emoji,
+      isTarget: true,
+      x: point.x,
+      y: point.y,
+      width: size,
+      height: size,
+      pickupRadius: 0,
+      order,
+    };
+  }).filter(Boolean);
 }
 
 void getLessonMissionsByLessonId;

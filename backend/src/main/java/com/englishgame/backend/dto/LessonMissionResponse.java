@@ -9,7 +9,9 @@ public record LessonMissionResponse(
         LessonMissionType type,
         String title,
         String description,
-        String npcId
+        String npcId,
+        String targetSource,
+        String collectibleType
 ) {
     public static LessonMissionResponse from(LessonMission mission) {
         if (mission == null) {
@@ -20,7 +22,9 @@ public record LessonMissionResponse(
                 mission.getType(),
                 mission.getTitle(),
                 mission.getDescription(),
-                mission.getNpcId()
+                mission.getNpcId(),
+                mission.getTargetSource(),
+                mission.getCollectibleType()
         );
     }
 }

@@ -110,6 +110,8 @@ public class LessonService {
         mission.setDescription(request.description());
         mission.setNpcId(request.npcId());
         mission.setType(request.type());
+        mission.setTargetSource(request.targetSource());
+        mission.setCollectibleType(request.collectibleType());
     }
 
     private String resolveSlug(LessonRequest request) {

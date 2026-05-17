@@ -34,6 +34,12 @@ public class LessonMission {
     @Column(name = "npc_id", nullable = false, length = 80)
     private String npcId;
 
+    @Column(name = "target_source", length = 40)
+    private String targetSource;
+
+    @Column(name = "collectible_type", length = 40)
+    private String collectibleType;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 30)
     private LessonMissionType type = LessonMissionType.FIND;
@@ -97,6 +103,22 @@ public class LessonMission {
 
     public void setNpcId(String npcId) {
         this.npcId = npcId;
+    }
+
+    public String getTargetSource() {
+        return targetSource;
+    }
+
+    public void setTargetSource(String targetSource) {
+        this.targetSource = targetSource;
+    }
+
+    public String getCollectibleType() {
+        return collectibleType;
+    }
+
+    public void setCollectibleType(String collectibleType) {
+        this.collectibleType = collectibleType;
     }
 
     public LessonMissionType getType() {

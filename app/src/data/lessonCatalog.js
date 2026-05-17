@@ -6,6 +6,7 @@ const DEFAULT_INTRO_MESSAGE = "Vamos comecar!";
 const DEFAULT_COMPLETION_MESSAGE = "Muito bem!";
 const DEFAULT_SUCCESS_MESSAGE = "Muito bem!";
 const DEFAULT_TRY_AGAIN_MESSAGE = "Tente novamente.";
+const TEACHING_ITEM_TYPES = new Set(["VOCABULARY", "PHRASE", "DIALOG"]);
 const DEFAULT_EMOJI = "❔";
 
 const fallbackLocations = Array.isArray(lessonsApi?.locations) ? lessonsApi.locations : [];
@@ -101,9 +102,31 @@ function mapExerciseToQuestion(exercise, localQuestion, index) {
   };
 }
 
+function mapLessonItemToStep(item, index) {
+  return {
+    id: item?.id ?? `item-${index}`,
+    type: "teaching",
+    itemType: item?.type ?? "PHRASE",
+    text: item?.text ?? "",
+    translation: item?.translation ?? "",
+    audioUrl: item?.audioUrl ?? null,
+    orderIndex: item?.orderIndex ?? index,
+  };
+}
+
+function mapQuestionToStep(question, index, orderOffset = 0) {
+  return {
+    ...question,
+    id: question?.id ?? `question-${index}`,
+    type: "question",
+    orderIndex: orderOffset + index,
+  };
+}
+
 function mapRemoteLesson(remoteLesson, localLesson) {
   const exercises = Array.isArray(remoteLesson?.exercises) ? remoteLesson.exercises : [];
   const localQuestions = Array.isArray(localLesson?.questions) ? localLesson.questions : [];
+  const items = Array.isArray(remoteLesson?.items) ? remoteLesson.items : [];
 
   const questions = exercises.length
     ? exercises
@@ -111,6 +134,14 @@ function mapRemoteLesson(remoteLesson, localLesson) {
         .sort((a, b) => (a.orderIndex ?? 0) - (b.orderIndex ?? 0))
         .map((exercise, index) => mapExerciseToQuestion(exercise, localQuestions[index], index))
     : localQuestions;
+
+  const teachingSteps = items
+    .slice()
+    .sort((a, b) => (a.orderIndex ?? 0) - (b.orderIndex ?? 0))
+    .filter((item) => TEACHING_ITEM_TYPES.has(item?.type))
+    .map(mapLessonItemToStep);
+  const questionSteps = questions.map((question, index) => mapQuestionToStep(question, index, teachingSteps.length));
+  const steps = teachingSteps.length ? [...teachingSteps, ...questionSteps] : questionSteps;
 
   return {
     id: remoteLesson?.slug ?? remoteLesson?.id,
@@ -121,6 +152,7 @@ function mapRemoteLesson(remoteLesson, localLesson) {
     completionMessage: localLesson?.completionMessage ?? DEFAULT_COMPLETION_MESSAGE,
     locationId: remoteLesson?.locationId ?? localLesson?.locationId ?? "school",
     mission: remoteLesson?.mission ?? localLesson?.mission ?? null,
+    steps,
     questions,
   };
 }
