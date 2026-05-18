@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "english-game",
+    "name": "runequest",
     "slug": "english-game",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -18,7 +18,7 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.malengo.englishgame"
+      "package": "com.groupcreativesolution.runequest"
     },
     "web": {
       "favicon": "./assets/images/favicon.png"
@@ -45,7 +45,7 @@
       "reactCompiler": true
     },
     "extra": {
-      "backendUrl": "http://192.168.0.17:8082",
+      "backendUrl": "https://runequest-jyrv.onrender.com",
       "eas": {
         "projectId": "33dfa2c8-ec28-40d0-8458-fff3ca32d13b"
       }
