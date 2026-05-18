@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { ImageBackground, StyleSheet, View } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
@@ -10,8 +11,28 @@ import LessonMissionScreen from "./src/screens/LessonMissionScreen";
 import {SafeAreaProvider} from "react-native-safe-area-context";
 
 const Stack = createNativeStackNavigator();
+const APP_SPLASH_DURATION_MS = 4200;
 
 export default function App() {
+    const [showAppSplash, setShowAppSplash] = useState(true);
+
+    useEffect(() => {
+        const timer = setTimeout(() => setShowAppSplash(false), APP_SPLASH_DURATION_MS);
+        return () => clearTimeout(timer);
+    }, []);
+
+    if (showAppSplash) {
+        return (
+            <View style={styles.splashContainer}>
+                <ImageBackground
+                    source={require("./assets/images/splash-icon.png")}
+                    style={styles.splashImage}
+                    resizeMode="contain"
+                />
+            </View>
+        );
+    }
+
     return (
         <SafeAreaProvider>
             <NavigationContainer>
@@ -26,3 +47,15 @@ export default function App() {
         </SafeAreaProvider>
     );
 }
+
+const styles = StyleSheet.create({
+    splashContainer: {
+        flex: 1,
+        backgroundColor: "#000000",
+    },
+    splashImage: {
+        flex: 1,
+        width: "100%",
+        height: "100%",
+    },
+});

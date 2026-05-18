@@ -6,8 +6,10 @@
   <component name="ChangeListManager">
     <list default="true" id="394fa644-f945-4215-9278-32d627b1c689" name="Changes" comment="backend upando licoes e audio">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/App.js" beforeDir="false" afterPath="$PROJECT_DIR$/app/App.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/app.json" beforeDir="false" afterPath="$PROJECT_DIR$/app/app.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/screens/MapScreen.js" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/screens/MapScreen.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/assets/images/icon.png" beforeDir="false" afterPath="$PROJECT_DIR$/app/assets/images/icon.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/assets/images/splash-icon.png" beforeDir="false" afterPath="$PROJECT_DIR$/app/assets/images/splash-icon.png" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -17,7 +19,7 @@
   <component name="CopilotChats">
     <option name="panelChat">
       <chat>
-        <option name="activeSessionId" value="4b2a63b3-3026-4cc9-bf05-f1b0c10cffad" />
+        <option name="activeSessionId" value="6b767d8a-9d77-4392-a4bf-bb9f8810bb87" />
         <option name="sessions">
           <session>
             <option name="chatType" value="PANEL" />
@@ -95,6 +97,23 @@
             <option name="status" value="Completed" />
             <option name="targetType" value="LOCAL" />
           </session>
+          <session>
+            <option name="chatType" value="PANEL" />
+            <option name="id" value="52ae19a1-ef11-47fa-9ee4-26f0cfc70716" />
+            <option name="modeId" value="file:///c%3A/snapshot/cls-source/dist/assets/agents/Plan.agent.md" />
+            <option name="modelType" value="builtin_family" />
+            <option name="modelValue" value="gpt-5.2-codex" />
+            <option name="targetType" value="LOCAL" />
+          </session>
+          <session>
+            <option name="chatType" value="PANEL" />
+            <option name="id" value="6b767d8a-9d77-4392-a4bf-bb9f8810bb87" />
+            <option name="modeId" value="Ask" />
+            <option name="modelType" value="builtin_family" />
+            <option name="modelValue" value="gpt-5.2-codex" />
+            <option name="status" value="Completed" />
+            <option name="targetType" value="LOCAL" />
+          </session>
         </option>
         <option name="type" value="PANEL" />
       </chat>
@@ -159,36 +178,42 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;Docker.Unnamed.executor&quot;: &quot;Run&quot;,
-    &quot;Maven. [spring-boot:run].executor&quot;: &quot;Run&quot;,
-    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
-    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
-    &quot;Spring Boot.Unnamed.executor&quot;: &quot;Debug&quot;,
-    &quot;codeWithMe.voiceChat.enabledByDefault&quot;: &quot;false&quot;,
-    &quot;deletionFromPopupRequiresConfirmation&quot;: &quot;false&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
-    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
-    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;ts.external.directory.path&quot;: &quot;C:\\Users\\josem\\Documents\\estudos\\english-game\\app\\node_modules\\typescript\\lib&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Docker.Unnamed.executor": "Run",
+    "Maven. [spring-boot:run].executor": "Run",
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
+    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
+    "Spring Boot.Unnamed.executor": "Debug",
+    "codeWithMe.voiceChat.enabledByDefault": "false",
+    "deletionFromPopupRequiresConfirmation": "false",
+    "git-widget-placeholder": "master",
+    "ignore.virus.scanning.warn.message": "true",
+    "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "C:/Users/josem/Documents/estudos/english-game/app/assets/images",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "ts.external.directory.path": "C:\\Users\\josem\\Documents\\estudos\\english-game\\app\\node_modules\\typescript\\lib",
+    "vue.rearranger.settings.migration": "true"
   },
-  &quot;keyToStringList&quot;: {
-    &quot;DatabaseDriversLRU&quot;: [
-      &quot;postgresql&quot;
+  "keyToStringList": {
+    "DatabaseDriversLRU": [
+      "postgresql"
     ]
   }
-}</component>
+}]]></component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\josem\Documents\estudos\english-game\app\assets\images" />
+    </key>
+  </component>
   <component name="RunManager">
     <configuration name="Unnamed" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
       <module name="english-game" />
@@ -225,7 +250,7 @@
       <workItem from="1778789295894" duration="1222000" />
       <workItem from="1778844506114" duration="8787000" />
       <workItem from="1779021372746" duration="2549000" />
-      <workItem from="1779123833210" duration="476000" />
+      <workItem from="1779123833210" duration="7463000" />
     </task>
     <task id="LOCAL-00001" summary="monorepo">
       <option name="closed" value="true" />
@@ -251,7 +276,15 @@
       <option name="project" value="LOCAL" />
       <updated>1778770939046</updated>
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary="backend upando licoes e audio">
+      <option name="closed" value="true" />
+      <created>1779124349984</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1779124349984</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
